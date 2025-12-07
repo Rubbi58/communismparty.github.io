@@ -435,7 +435,9 @@
       el.style.display = "block";
       setTimeout(() => { el.style.display = "none"; }, 2000);
     }
-    function hideAlert() { document.getElementById("alertBanner").style.display = "none"; }
+    function hideAlert() {
+      document.getElementById("alertBanner").style.display = "none";
+    }
 
     function awakenHoriver() {
       if (!horiver.active && horiver.alive) {
@@ -596,13 +598,13 @@
       const endTX = Math.ceil((cam.x + canvas.width) / TILE);
       const endTY = Math.ceil((cam.y + canvas.height) / TILE);
 
+      // ---- draw tiles & some furniture ----
       for (let ty = startTY; ty <= endTY; ty++) {
         for (let tx = startTX; tx <= endTX; tx++) {
           const t = tileAt(tx, ty);
           const sx = tx * TILE - cam.x;
           const sy = ty * TILE - cam.y;
 
-          // Basic colors
           if (t === T_WALL) {
             ctx.fillStyle = "#261014";        // wall
           } else if (t === T_CLOSET) {
@@ -619,16 +621,15 @@
             ctx.fillRect(sx + 4, sy + 4, TILE - 8, TILE - 8);
           }
 
-          // Simple furniture: one table in dining room, bed in bedroom, toilet in bathroom
-          // (coordinates are approximate inside furniture.png, but will show *something*).
+          // simple furniture examples
           if (tx === 21 && ty === 8) {
-            drawFurnitureTile(0, 0, sx, sy);          // some table/sofa
+            drawFurnitureTile(0, 0, sx, sy);          // table/sofa
           }
           if (tx === 5 && ty === 8) {
-            drawFurnitureTile(96, 0, sx, sy);        // some bed/couch
+            drawFurnitureTile(96, 0, sx, sy);        // bed/couch
           }
           if (tx === 20 && ty === 4) {
-            drawFurnitureTile(0, 160, sx, sy);       // some toilet/fixture
+            drawFurnitureTile(0, 160, sx, sy);       // toilet/fixture
           }
         }
       }
@@ -649,15 +650,30 @@
         }
       }
 
+      // ---- items (with key glow) ----
       for (let ty = startTY; ty <= endTY; ty++) {
         for (let tx = startTX; tx <= endTX; tx++) {
           const t = tileAt(tx, ty);
-          if (t === T_FLASHLIGHT && !haveFlashlight) drawSprite(imgFlashlight, tx, ty, 0.95);
-          if (t === T_KEY && !haveKey) drawSprite(imgKey, tx, ty, 0.95);
-          if (t === T_CHEST && haveKey && !vapeDestroyed && !haveVape) drawSprite(imgVape, tx, ty, 0.95);
+          const sxItem = tx * TILE - cam.x;
+          const syItem = ty * TILE - cam.y;
+
+          if (t === T_FLASHLIGHT && !haveFlashlight) {
+            drawSprite(imgFlashlight, tx, ty, 0.95);
+          }
+
+          if (t === T_KEY && !haveKey) {
+            ctx.fillStyle = "#ffd54a";
+            ctx.fillRect(sxItem + 6, syItem + 6, TILE - 12, TILE - 12);
+            drawSprite(imgKey, tx, ty, 0.95);
+          }
+
+          if (t === T_CHEST && haveKey && !vapeDestroyed && !haveVape) {
+            drawSprite(imgVape, tx, ty, 0.95);
+          }
         }
       }
 
+      // ---- player & horiver ----
       drawSprite(imgPlayer, player.x / TILE, player.y / TILE, 0.95);
       if (horiver.alive && horiver.active) {
         drawSprite(imgHoriver, horiver.x / TILE, horiver.y / TILE, 0.95);
@@ -666,22 +682,28 @@
       applyFog(player.x - cam.x, player.y - cam.y);
     }
 
-    // Fog: much lighter, small map
+    // Fog: smaller cone, clearly brighter area
     function applyFog(pScreenX, pScreenY) {
       ctx.save();
-      ctx.fillStyle = "rgba(0,0,0,0.55)";
+
+      // overall darkness – slightly lighter
+      ctx.fillStyle = "rgba(0,0,0,0.45)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // cut bright areas out of darkness
       ctx.globalCompositeOperation = "destination-out";
 
-      const baseRadius = haveFlashlight ? 190 : 150;
+      // small glow around player
+      const baseRadius = haveFlashlight ? 120 : 90;
       ctx.beginPath();
       ctx.arc(pScreenX, pScreenY, baseRadius, 0, Math.PI * 2);
       ctx.fill();
 
+      // flashlight cone in movement direction
       const dirLen = Math.hypot(lastDir.x, lastDir.y) || 1;
-      const fx = pScreenX + (lastDir.x / dirLen) * 210;
-      const fy = pScreenY + (lastDir.y / dirLen) * 210;
-      const flashlightRadius = haveFlashlight ? 260 : 200;
+      const fx = pScreenX + (lastDir.x / dirLen) * 150;
+      const fy = pScreenY + (lastDir.y / dirLen) * 150;
+      const flashlightRadius = haveFlashlight ? 190 : 140;
 
       ctx.beginPath();
       ctx.arc(fx, fy, flashlightRadius, 0, Math.PI * 2);
