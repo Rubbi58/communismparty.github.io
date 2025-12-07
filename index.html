@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>TEST – Simple Room</title>
+  <title>TEST – Keyboard Input</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
@@ -36,15 +36,18 @@
   </style>
 </head>
 <body>
-  <div id="hud">TEST: Move the white square with WASD. If you can see it, JS works.</div>
+  <div id="hud">TEST: Click the black area, then press keys. Last key will show here.</div>
   <canvas id="game"></canvas>
 
   <script>
+    const hud = document.getElementById("hud");
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
+
     function resize() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight - 30;
+      draw();
     }
     window.addEventListener("resize", resize);
     resize();
@@ -53,7 +56,6 @@
     const MAP_W = 15;
     const MAP_H = 10;
 
-    // 0 = wall, 1 = floor
     const map = [
       "000000000000000",
       "011111111111110",
@@ -72,45 +74,9 @@
       return map[y][x] === "1";
     }
 
-    const player = { x: 3.5, y: 5.5, speed: 4 };
-    const keys = {w:false,a:false,s:false,d:false};
+    const player = { x: 3.5, y: 5.5 };
 
-    window.addEventListener("keydown", e=>{
-      if (e.key==="w"||e.key==="W") keys.w=true;
-      if (e.key==="a"||e.key==="A") keys.a=true;
-      if (e.key==="s"||e.key==="S") keys.s=true;
-      if (e.key==="d"||e.key==="D") keys.d=true;
-    });
-    window.addEventListener("keyup", e=>{
-      if (e.key==="w"||e.key==="W") keys.w=false;
-      if (e.key==="a"||e.key==="A") keys.a=false;
-      if (e.key==="s"||e.key==="S") keys.s=false;
-      if (e.key==="d"||e.key==="D") keys.d=false;
-    });
-
-    let last = performance.now();
-
-    function loop(time){
-      const dt = (time-last)/1000;
-      last = time;
-
-      // movement
-      let dx=0, dy=0;
-      if (keys.w) dy-=1;
-      if (keys.s) dy+=1;
-      if (keys.a) dx-=1;
-      if (keys.d) dx+=1;
-      const len = Math.hypot(dx,dy);
-      if (len>0){dx/=len;dy/=len;}
-
-      const step = player.speed*dt;
-      const nx = player.x + dx*step;
-      const ny = player.y + dy*step;
-
-      if (isFloor(Math.floor(nx), Math.floor(player.y))) player.x = nx;
-      if (isFloor(Math.floor(player.x), Math.floor(ny))) player.y = ny;
-
-      // draw
+    function draw() {
       ctx.clearRect(0,0,canvas.width,canvas.height);
       const camX = player.x*TILE - canvas.width/2;
       const camY = player.y*TILE - canvas.height/2;
@@ -128,14 +94,30 @@
         }
       }
 
-      // player
       ctx.fillStyle="#ffffff";
       ctx.fillRect(player.x*TILE - camX - 10, player.y*TILE - camY - 10, 20, 20);
-
-      requestAnimationFrame(loop);
     }
 
-    requestAnimationFrame(loop);
+    draw();
+
+    // KEY HANDLING TEST
+    window.addEventListener("keydown", (e) => {
+      hud.textContent = "Last key: " + e.key;
+
+      let nx = player.x;
+      let ny = player.y;
+
+      if (e.key === "w" || e.key === "W") ny -= 0.5;
+      if (e.key === "s" || e.key === "S") ny += 0.5;
+      if (e.key === "a" || e.key === "A") nx -= 0.5;
+      if (e.key === "d" || e.key === "D") nx += 0.5;
+
+      if (isFloor(Math.floor(nx), Math.floor(ny))) {
+        player.x = nx;
+        player.y = ny;
+        draw();
+      }
+    });
   </script>
 </body>
 </html>
