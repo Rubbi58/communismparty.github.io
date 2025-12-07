@@ -61,14 +61,8 @@
       font-size: 1.8rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      margin-bottom: 0.8rem;
-      color: #ffdd88;
-    }
-
-    .welcome-card p {
-      font-size: 0.95rem;
-      color: #ffe8c2;
       margin-bottom: 1.4rem;
+      color: #ffdd88;
     }
 
     .welcome-card img {
@@ -96,7 +90,22 @@
       transform: translateY(-1px);
     }
 
-    /* MAP SCREEN */
+    .btn-secondary {
+      border-radius: 999px;
+      border: 1px solid #ffcc66;
+      background: transparent;
+      color: #ffdd88;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      font-size: 0.8rem;
+      padding: 0.6rem 1.4rem;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,204,102,0.09);
+    }
+
+    /* SIMPLE LEVEL SELECT SCREEN */
 
     #mapScreen {
       background: radial-gradient(circle at top, #5c0000 0, #050104 60%);
@@ -116,52 +125,55 @@
       letter-spacing: 0.12em;
     }
 
-    .map-header span {
-      opacity: 0.9;
-    }
-
     .map-main {
       flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       position: relative;
       overflow: hidden;
     }
 
-    #mapCanvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-      image-rendering: pixelated;
-      background: #243112;
-    }
-
-    .lair-button {
+    .map-main::before {
+      content: "";
       position: absolute;
-      left: 4%;
-      top: 7%;
-      transform: translateY(0);
-      padding: 0.4rem 0.8rem;
-      border-radius: 0.7rem;
-      border: 1px solid #ffcc66;
-      background: rgba(5,0,0,0.85);
-      color: #ffdd88;
-      font-size: 0.78rem;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at top left, #7a1010 0, transparent 40%),
+        radial-gradient(circle at bottom right, #133015 0, transparent 45%);
+      opacity: 0.9;
+    }
+
+    .map-card {
+      position: relative;
+      z-index: 2;
+      border-radius: 1.2rem;
+      border: 2px solid #ffcc66;
+      background: rgba(0,0,0,0.85);
+      padding: 1.5rem 2rem;
+      text-align: center;
+      box-shadow: 0 20px 45px rgba(0,0,0,0.8);
+    }
+
+    .map-card h2 {
+      font-size: 1.2rem;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+      letter-spacing: 0.16em;
+      color: #ffdd88;
+      margin-bottom: 0.7rem;
     }
 
-    .lair-button img {
-      width: 32px;
-      height: 32px;
+    .map-card p {
+      font-size: 0.9rem;
+      margin-bottom: 1.2rem;
+      color: #ffe8c2;
+    }
+
+    .map-card img {
+      max-width: 160px;
+      display: block;
+      margin: 0 auto 1rem;
       image-rendering: pixelated;
-    }
-
-    .lair-button:hover {
-      box-shadow: 0 0 16px rgba(255,100,100,0.9);
-      border-color: #ff9966;
     }
 
     .map-footer {
@@ -169,13 +181,8 @@
       font-size: 0.75rem;
       color: #f7e3c8;
       border-top: 1px solid rgba(255,204,102,0.4);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .map-footer span {
-      opacity: 0.85;
+      text-align: center;
+      opacity: 0.9;
     }
 
     /* GAME SCREEN */
@@ -281,21 +288,6 @@
       margin-bottom: 1.1rem;
     }
 
-    .btn-secondary {
-      border-radius: 999px;
-      border: 1px solid #ffcc66;
-      background: transparent;
-      color: #ffdd88;
-      text-transform: uppercase;
-      letter-spacing: 0.09em;
-      font-size: 0.8rem;
-      padding: 0.6rem 1.4rem;
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255,204,102,0.09);
-    }
-
     /* Horiver hears you banner */
 
     #alertBanner {
@@ -323,12 +315,6 @@
         padding-inline: 1.5rem;
       }
 
-      .lair-button {
-        left: 50%;
-        top: 8%;
-        transform: translateX(-50%);
-      }
-
       .hud {
         flex-direction: column;
         align-items: flex-start;
@@ -346,39 +332,28 @@
 <!-- WELCOME POPUP -->
 <div id="welcomeOverlay">
   <div class="welcome-card">
-    <!-- You can swap this image to any “welcome” graphic you make -->
     <img src="images/horiver lair.png" alt="Communism Party">
     <h1>WELCOME TO COMMUNISM PARTY</h1>
-    <p>
-      A cursed retro HQ. Explore the map, enter Hóriver’s Lair, and find a way
-      to destroy Oliver’s vape before he catches you in the mist.
-    </p>
     <button class="btn-primary" id="welcomeEnterBtn">Enter Headquarters</button>
   </div>
 </div>
 
-<!-- MAP SCREEN -->
+<!-- SIMPLE LEVEL SELECT -->
 <div id="mapScreen" class="screen active">
   <div class="map-header">
     <span>COMMUNIST OVERWORLD – LEVEL SELECT</span>
-    <span>Use mouse – click a fortress</span>
+    <span>Only Level 1 is unlocked</span>
   </div>
   <div class="map-main">
-    <!-- Fullscreen level map background: if you ever add a real map image, draw it in JS or set as background -->
-    <canvas id="mapCanvas"></canvas>
-
-    <!-- Clickable Level 1 icon (top-left) -->
-    <div class="lair-button" id="lairButton" title="Enter Hóriver's Lair">
-      <img src="images/horiver lair.png" alt="Hóriver's Lair">
-      <div>
-        <div style="font-weight:800; font-size:0.8rem;">LEVEL 1</div>
-        <div style="font-size:0.75rem;">HÓRIVER'S LAIR</div>
-      </div>
+    <div class="map-card">
+      <img src="images/horiver lair.png" alt="Horiver's Lair">
+      <h2>LEVEL 1 – HÓRIVER'S LAIR</h2>
+      <p>Enter the castle drowned in vape smoke. Find the vape, destroy it, and escape Hóriver.</p>
+      <button class="btn-primary" id="startLevelBtn">Start Level</button>
     </div>
   </div>
   <div class="map-footer">
-    <span>Only Level 1 is available for now.</span>
-    <span>More cursed provinces will unlock later.</span>
+    More cursed regions of the map will unlock in future levels.
   </div>
 </div>
 
@@ -422,9 +397,7 @@
 </div>
 
 <script>
-  // -----------------------------
-  // ASSET LOADING – AUDIO
-  // -----------------------------
+  // ---------- Audio helpers ----------
   const sounds = {
     menuClick: new Audio("sounds/menu click.mp3"),
     start: new Audio("sounds/start sound.mp3"),
@@ -438,16 +411,12 @@
   sounds.bgm.loop = true;
   sounds.bgm.volume = 0.3;
 
-  function safePlay(audio) {
-    if (!audio) return;
-    audio.currentTime = 0;
-    audio.play().catch(() => {});
+  function safePlay(a) {
+    a.currentTime = 0;
+    a.play().catch(() => {});
   }
 
-  // -----------------------------
-  // SCREEN MANAGEMENT
-  // -----------------------------
-
+  // ---------- Screen management ----------
   const welcomeOverlay = document.getElementById("welcomeOverlay");
   const mapScreen = document.getElementById("mapScreen");
   const gameScreen = document.getElementById("gameScreen");
@@ -455,604 +424,353 @@
   const winOverlay = document.getElementById("winOverlay");
   const alertBanner = document.getElementById("alertBanner");
 
-  function showScreen(screenName) {
+  function showScreen(name) {
     mapScreen.classList.remove("active");
     gameScreen.classList.remove("active");
-    if (screenName === "map") {
-      mapScreen.classList.add("active");
-    } else if (screenName === "game") {
-      gameScreen.classList.add("active");
-    }
+    if (name === "map") mapScreen.classList.add("active");
+    if (name === "game") gameScreen.classList.add("active");
   }
 
-  // -----------------------------
-  // MAP SCREEN – SIMPLE BACKGROUND + LAIR ICON
-  // -----------------------------
-  const mapCanvas = document.getElementById("mapCanvas");
-  const mapCtx = mapCanvas.getContext("2d");
+  // ---------- Game data ----------
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
+  const TILE = 40;
+  const MAP_W = 20;
+  const MAP_H = 13;
 
-  function resizeMapCanvas() {
-    mapCanvas.width = mapCanvas.clientWidth;
-    mapCanvas.height = mapCanvas.clientHeight;
-    drawMapBackground();
+  // 0 wall, 1 floor, 2 closet, 3 throne, 4 chest, 5 bathroom
+  const map = [
+    "00000000000000000000",
+    "01111111111111111110",
+    "01100000001000000110",
+    "01100000001000000110",
+    "01111111131111111110",
+    "01100000001000000110",
+    "01100002221002220110",
+    "01100000001000000110",
+    "01111111111111111110",
+    "01100000001000040110",
+    "01100000001000000110",
+    "01111111151111111110",
+    "00000000000000000000"
+  ];
+
+  function isWalkable(x, y) {
+    if (x<0 || y<0 || x>=MAP_W || y>=MAP_H) return false;
+    const c = map[y][x];
+    return c === "1" || c === "2" || c === "3" || c === "4" || c === "5";
   }
 
-  window.addEventListener("resize", resizeMapCanvas);
+  const startPos = {x: 3.5, y: 6.5};
+  const thronePos = {x: 9.5, y: 4.5};
+  const keyPos = {x: 3.5, y: 9.5};
+  const chestPos = {x: 15.5, y: 9.5};
+  const bathroomPos = {x: 9.5, y: 11.5};
+  const flashlightPos = {x: thronePos.x, y: thronePos.y - 0.5};
 
-  function drawMapBackground() {
-    const w = mapCanvas.width;
-    const h = mapCanvas.height;
-
-    // Simple stylized overworld background
-    const grd = mapCtx.createLinearGradient(0, 0, 0, h);
-    grd.addColorStop(0, "#4a1b0f");
-    grd.addColorStop(0.35, "#3b4f1f");
-    grd.addColorStop(1, "#1c2510");
-    mapCtx.fillStyle = grd;
-    mapCtx.fillRect(0, 0, w, h);
-
-    // fake paths
-    mapCtx.strokeStyle = "#d99b4a";
-    mapCtx.lineWidth = 14;
-    mapCtx.lineCap = "round";
-    mapCtx.beginPath();
-    mapCtx.moveTo(w * 0.1, h * 0.25);
-    mapCtx.lineTo(w * 0.3, h * 0.4);
-    mapCtx.lineTo(w * 0.5, h * 0.42);
-    mapCtx.lineTo(w * 0.7, h * 0.6);
-    mapCtx.stroke();
-
-    // mountains right side
-    mapCtx.fillStyle = "#555970";
-    for (let i = 0; i < 10; i++) {
-      const x = w * 0.45 + i * (w * 0.05);
-      const y = h * 0.2 + Math.sin(i) * 10;
-      mapCtx.beginPath();
-      mapCtx.moveTo(x, y);
-      mapCtx.lineTo(x + 40, y + 80);
-      mapCtx.lineTo(x - 40, y + 80);
-      mapCtx.closePath();
-      mapCtx.fill();
-    }
-
-    // lakes
-    mapCtx.fillStyle = "#3b74c0";
-    mapCtx.beginPath();
-    mapCtx.ellipse(w * 0.35, h * 0.6, w * 0.1, h * 0.07, 0, 0, Math.PI * 2);
-    mapCtx.fill();
-    mapCtx.beginPath();
-    mapCtx.ellipse(w * 0.65, h * 0.35, w * 0.08, h * 0.05, 0, 0, Math.PI * 2);
-    mapCtx.fill();
-
-    // forest left
-    mapCtx.fillStyle = "#27421a";
-    for (let i = 0; i < 40; i++) {
-      const x = Math.random() * w * 0.45;
-      const y = h * 0.4 + Math.random() * h * 0.55;
-      mapCtx.beginPath();
-      mapCtx.moveTo(x, y);
-      mapCtx.lineTo(x + 10, y + 26);
-      mapCtx.lineTo(x - 10, y + 26);
-      mapCtx.closePath();
-      mapCtx.fill();
-    }
-
-    // fortress top-left (Hóriver's Lair illustration)
-    mapCtx.fillStyle = "#b23b2f";
-    const fx = w * 0.08;
-    const fy = h * 0.12;
-    mapCtx.fillRect(fx, fy, 90, 50);
-    mapCtx.fillStyle = "#79301f";
-    mapCtx.fillRect(fx + 8, fy + 28, 24, 22);
-    mapCtx.fillRect(fx + 52, fy + 28, 24, 22);
-    mapCtx.fillStyle = "#d4af6a";
-    mapCtx.fillRect(fx + 34, fy + 20, 22, 30);
-  }
-
-  resizeMapCanvas();
-
-  // -----------------------------
-  // GAME / LEVEL 1 IMPLEMENTATION
-  // -----------------------------
-
-  const gameCanvas = document.getElementById("gameCanvas");
-  const ctx = gameCanvas.getContext("2d");
-  gameCanvas.width = 960;
-  gameCanvas.height = 540;
-
-  const TILE = 16;
-  const SCALE = 3;
-  const DRAW_TILE = TILE * SCALE;
-
-  const tilesheet = new Image();
-  tilesheet.src = "images/dungeons pack.png";
+  const keyRoom = {x1: 2, y1: 9, x2: 5, y2: 10};
 
   const playerSprite = new Image();
   playerSprite.src = "images/player.png";
-
   const horiverSprite = new Image();
   horiverSprite.src = "images/horiver character.png";
-
-  const flashlightSprite = new Image();
-  flashlightSprite.src = "images/pixel-flashlight.png";
-
+  const flashSprite = new Image();
+  flashSprite.src = "images/pixel-flashlight.png";
   const keySprite = new Image();
   keySprite.src = "images/key pixel.png";
-
   const vapeSprite = new Image();
   vapeSprite.src = "images/vape pixel.png";
-
-  const tokenSprite = new Image();
-  tokenSprite.src = "images/bhoriver token.png";
-
-  // Simple tile indices (guessed positions on tilesheet)
-  const tileIndex = {
-    floor: {x: 5, y: 5},
-    wall: {x: 0, y: 0},
-    door: {x: 7, y: 4},
-    closet: {x: 9, y: 6},
-    bathroomFloor: {x: 4, y: 8},
-    throne: {x: 10, y: 4},
-    chest: {x: 8, y: 6},
-    toilet: {x: 1, y: 9}
-  };
-
-  function drawTile(type, gx, gy) {
-    const info = tileIndex[type] || tileIndex.floor;
-    ctx.drawImage(
-      tilesheet,
-      info.x * TILE, info.y * TILE, TILE, TILE,
-      gx * DRAW_TILE, gy * DRAW_TILE, DRAW_TILE, DRAW_TILE
-    );
-  }
-
-  // Map layout (simple handcrafted grid)
-  // 0 = wall, 1 = floor, 2 = door, 3 = throne, 4 = closet, 5 = bathroom, 6 = chest
-  const mapWidth = 30;
-  const mapHeight = 17;
-
-  const mapGrid = [
-    "000000000000000000000000000000",
-    "011111111111111111111111111110",
-    "010000001000000010000001000010",
-    "012000001000000010000001000010",
-    "011111111111311111111111111110",
-    "010000001000000010000001000010",
-    "011100001011110010111001011110",
-    "010100401000010010000001000010",
-    "010111111000010011111111000010",
-    "010000001000010010000001000010",
-    "011111111111111111111111111110",
-    "010600001000000010000001000010",
-    "010000001000000010000001000010",
-    "011111111111111111111111111110",
-    "010000001000050010000001000010",
-    "011111111111111111111111111110",
-    "000000000000000000000000000000"
-  ];
-
-  function isWalkableCell(x, y) {
-    if (x < 0 || y < 0 || x >= mapWidth || y >= mapHeight) return false;
-    const c = mapGrid[y][x];
-    return c === "1" || c === "2" || c === "3" || c === "4" || c === "5" || c === "6";
-  }
-
-  const keyRoom = {x1: 1, y1: 11, x2: 6, y2: 13};     // approximate room with chest & key
-  const bathroomArea = {x1: 13, y1: 14, x2: 19, y2: 15};
-  const thronePos = {x: 15, y: 4};
-  const chestPos = {x: 2, y: 11};
-  const flashlightPos = {x: thronePos.x, y: thronePos.y};
-  const keyPos = {x: 3, y: 11};
-  const bathroomToiletPos = {x: 16, y: 14};
-
-  let player = {
-    x: 4.5,
-    y: 9.5,
-    speed: 2.0,
-    sprintSpeed: 3.6,
-    width: 0.7,
-    height: 0.7
-  };
-
-  let horiver = {
-    x: thronePos.x + 0.5,
-    y: thronePos.y + 1.3,
-    speed: 2.0,
-    active: false,
-    fading: false
-  };
-
-  let haveFlashlight = false;
-  let haveKey = false;
-  let haveVape = false;
-  let vapeDestroyed = false;
-  let keyRoomTriggered = false;
-  let inKeyRoom = false;
-  let sprintValue = 1.0; // 0..1
-  let sprinting = false;
-  let gameRunning = false;
-  let lastTime = 0;
-  let deathPending = false;
-  let winPending = false;
-
-  const keys = {
-    w: false,
-    a: false,
-    s: false,
-    d: false,
-    shift: false
-  };
-
-  window.addEventListener("keydown", (e) => {
-    if (e.key === "w" || e.key === "W") keys.w = true;
-    if (e.key === "a" || e.key === "A") keys.a = true;
-    if (e.key === "s" || e.key === "S") keys.s = true;
-    if (e.key === "d" || e.key === "D") keys.d = true;
-    if (e.key === "Shift") keys.shift = true;
-  });
-
-  window.addEventListener("keyup", (e) => {
-    if (e.key === "w" || e.key === "W") keys.w = false;
-    if (e.key === "a" || e.key === "A") keys.a = false;
-    if (e.key === "s" || e.key === "S") keys.s = false;
-    if (e.key === "d" || e.key === "D") keys.d = false;
-    if (e.key === "Shift") keys.shift = false;
-  });
 
   const sprintBarInner = document.getElementById("sprintBarInner");
   const missionText = document.getElementById("missionText");
 
+  const keys = {w:false,a:false,s:false,d:false,shift:false};
+
+  window.addEventListener("keydown", e=>{
+    if (e.key==="w"||e.key==="W") keys.w=true;
+    if (e.key==="a"||e.key==="A") keys.a=true;
+    if (e.key==="s"||e.key==="S") keys.s=true;
+    if (e.key==="d"||e.key==="D") keys.d=true;
+    if (e.key==="Shift") keys.shift=true;
+  });
+  window.addEventListener("keyup", e=>{
+    if (e.key==="w"||e.key==="W") keys.w=false;
+    if (e.key==="a"||e.key==="A") keys.a=false;
+    if (e.key==="s"||e.key==="S") keys.s=false;
+    if (e.key==="d"||e.key==="D") keys.d=false;
+    if (e.key==="Shift") keys.shift=false;
+  });
+
+  let player, horiver, haveFlashlight, haveKey, haveVape, vapeDestroyed;
+  let inKeyRoom, keyTriggered, sprintValue, running, gameRunning, lastTime, deathPending, winPending;
+
   function resetLevel() {
-    player.x = 4.5;
-    player.y = 9.5;
+    player = {x:startPos.x, y:startPos.y, speed:2.2, sprint:3.8};
+    horiver = {x:thronePos.x, y:thronePos.y+1, speed:2.2, active:false, fading:false};
     haveFlashlight = false;
     haveKey = false;
     haveVape = false;
     vapeDestroyed = false;
-    keyRoomTriggered = false;
     inKeyRoom = false;
-    sprintValue = 1.0;
-    horiver.x = thronePos.x + 0.5;
-    horiver.y = thronePos.y + 1.3;
-    horiver.active = false;
-    horiver.fading = false;
+    keyTriggered = false;
+    sprintValue = 1;
+    running = false;
+    gameRunning = true;
+    lastTime = performance.now();
     deathPending = false;
     winPending = false;
     missionText.textContent = "MISSION: FIND AND DESTROY OLIVER'S VAPE";
     hideAlert();
   }
 
-  function startLevel() {
-    resetLevel();
-    gameRunning = true;
-    lastTime = performance.now();
-    showScreen("game");
-    safePlay(sounds.start);
-    safePlay(sounds.bgm);
-    requestAnimationFrame(gameLoop);
-  }
-
-  function backToMap() {
-    gameRunning = false;
-    showScreen("map");
-  }
-
   function showAlert() {
     alertBanner.style.display = "block";
-    setTimeout(() => {
-      alertBanner.style.display = "none";
-    }, 2200);
+    setTimeout(()=>alertBanner.style.display="none", 2000);
   }
 
   function hideAlert() {
     alertBanner.style.display = "none";
   }
 
-  function update(delta) {
+  function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+
+  function update(dt) {
     if (!gameRunning) return;
 
-    // Movement
-    let dx = 0;
-    let dy = 0;
-    if (keys.w) dy -= 1;
-    if (keys.s) dy += 1;
-    if (keys.a) dx -= 1;
-    if (keys.d) dx += 1;
+    // movement
+    let dx=0, dy=0;
+    if (keys.w) dy-=1;
+    if (keys.s) dy+=1;
+    if (keys.a) dx-=1;
+    if (keys.d) dx+=1;
+    const len = Math.hypot(dx,dy);
+    if (len>0){dx/=len;dy/=len;}
 
-    let len = Math.hypot(dx, dy);
-    if (len > 0) {
-      dx /= len;
-      dy /= len;
-    }
-
-    sprinting = keys.shift && sprintValue > 0.05 && (dx !== 0 || dy !== 0);
-
+    running = keys.shift && sprintValue>0.05 && (dx||dy);
     let speed = player.speed;
-    if (sprinting) {
-      speed = player.sprintSpeed;
-      sprintValue -= delta / 3; // drains in ~3s
+    if (running) {
+      speed = player.sprint;
+      sprintValue -= dt/3;
     } else {
-      sprintValue += delta / 6; // recharge slower
+      sprintValue += dt/5;
     }
     sprintValue = Math.max(0, Math.min(1, sprintValue));
     sprintBarInner.style.transform = `scaleX(${sprintValue})`;
 
-    const move = speed * delta;
+    const step = speed*dt;
 
-    function tryMove(axis) {
-      let newX = player.x;
-      let newY = player.y;
-      if (axis === "x") newX += dx * move;
-      if (axis === "y") newY += dy * move;
-
-      const halfW = player.width / 2;
-      const halfH = player.height / 2;
-      const corners = [
-        {x: newX - halfW, y: newY - halfH},
-        {x: newX + halfW, y: newY - halfH},
-        {x: newX - halfW, y: newY + halfH},
-        {x: newX + halfW, y: newY + halfH}
-      ];
-      for (const c of corners) {
-        const gx = Math.floor(c.x);
-        const gy = Math.floor(c.y);
-        if (!isWalkableCell(gx, gy)) {
-          return;
-        }
+    function tryMove(nx,ny){
+      const gx = Math.floor(nx);
+      const gy = Math.floor(ny);
+      if (isWalkable(gx, gy)) {
+        player.x = nx;
+        player.y = ny;
       }
-      player.x = newX;
-      player.y = newY;
     }
 
-    tryMove("x");
-    tryMove("y");
+    tryMove(player.x + dx*step, player.y);
+    tryMove(player.x, player.y + dy*step);
 
-    // Key room enter/leave detection
-    const px = player.x;
-    const py = player.y;
-    const nowInKeyRoom =
-      px >= keyRoom.x1 && px <= keyRoom.x2 &&
-      py >= keyRoom.y1 && py <= keyRoom.y2;
+    // key room trigger
+    const inside =
+      player.x>=keyRoom.x1 && player.x<=keyRoom.x2 &&
+      player.y>=keyRoom.y1 && player.y<=keyRoom.y2;
 
-    if (!inKeyRoom && nowInKeyRoom) {
-      inKeyRoom = true;
-    }
-    if (inKeyRoom && !nowInKeyRoom) {
+    if (!inKeyRoom && inside) inKeyRoom = true;
+    if (inKeyRoom && !inside) {
       inKeyRoom = false;
-      if (haveKey && !keyRoomTriggered) {
-        keyRoomTriggered = true;
+      if (haveKey && !keyTriggered) {
+        keyTriggered = true;
         horiver.active = true;
         safePlay(sounds.jumpscare);
         showAlert();
       }
     }
 
-    // Item pickups
-    function distTo(pos) {
-      const dx = player.x - (pos.x + 0.5);
-      const dy = player.y - (pos.y + 0.5);
-      return Math.hypot(dx, dy);
-    }
-
-    // Flashlight
-    if (!haveFlashlight && distTo(flashlightPos) < 0.8) {
+    // item pickups
+    if (!haveFlashlight && dist(player, flashlightPos)<0.7) {
       haveFlashlight = true;
       safePlay(sounds.pickup);
       missionText.textContent = "MISSION: FIND THE KEY TO HÓRIVER'S CHEST";
     }
 
-    // Key
-    if (!haveKey && distTo(keyPos) < 0.8) {
+    if (!haveKey && dist(player, keyPos)<0.7) {
       haveKey = true;
       safePlay(sounds.pickup);
       missionText.textContent = "MISSION: FIND THE CHEST CONTAINING THE VAPE";
     }
 
-    // Chest -> vape
-    if (!haveVape && haveKey && distTo(chestPos) < 0.9) {
+    if (!haveVape && haveKey && dist(player, chestPos)<0.9) {
       haveVape = true;
       safePlay(sounds.pickup);
       missionText.textContent = "MISSION: FIND THE BATHROOM AND DESTROY THE VAPE";
     }
 
-    // Bathroom flush
-    if (!vapeDestroyed && haveVape && distTo(bathroomToiletPos) < 0.9) {
+    if (!vapeDestroyed && haveVape && dist(player, bathroomPos)<0.9) {
       vapeDestroyed = true;
       haveVape = false;
+      horiver.fading = true;
+      horiver.active = false;
       safePlay(sounds.flush);
       missionText.textContent = "MISSION: RETURN TO THE THRONE TO CLAIM YOUR TOKEN";
-      horiver.fading = true;
     }
 
-    // Hóriver AI
+    // Horiver AI
     if (horiver.active && !horiver.fading) {
-      const hx = horiver.x;
-      const hy = horiver.y;
-      const dxh = player.x - hx;
-      const dyh = player.y - hy;
-      const dlen = Math.hypot(dxh, dyh);
-      if (dlen > 0.01) {
-        const ndx = dxh / dlen;
-        const ndy = dyh / dlen;
-        const step = horiver.speed * delta;
-
-        let newX = hx + ndx * step;
-        let newY = hy + ndy * step;
-
-        // collisions
-        const gx = Math.floor(newX);
-        const gy = Math.floor(newY);
-        if (isWalkableCell(gx, gy)) {
-          horiver.x = newX;
-          horiver.y = newY;
+      const dxh = player.x - horiver.x;
+      const dyh = player.y - horiver.y;
+      const d = Math.hypot(dxh,dyh);
+      if (d>0.05){
+        const vx = dxh/d;
+        const vy = dyh/d;
+        const hstep = horiver.speed*dt;
+        const nx = horiver.x + vx*hstep;
+        const ny = horiver.y + vy*hstep;
+        if (isWalkable(Math.floor(nx),Math.floor(ny))) {
+          horiver.x = nx;
+          horiver.y = ny;
         }
       }
-    } else if (horiver.fading) {
-      horiver.active = false;
     }
 
-    // Death check (closets = safe)
-    const playerCell = {
-      x: Math.floor(player.x),
-      y: Math.floor(player.y)
-    };
-    const cellChar = mapGrid[playerCell.y][playerCell.x];
-    const hiding = cellChar === "4"; // closet
-
-    const distPH = Math.hypot(player.x - horiver.x, player.y - horiver.y);
-    if (!hiding && horiver.active && distPH < 0.7 && !deathPending && !winPending) {
+    // death (closets safe)
+    const cell = map[Math.floor(player.y)][Math.floor(player.x)];
+    const hiding = cell === "2";
+    const dPH = dist(player, horiver);
+    if (horiver.active && !hiding && dPH<0.8 && !deathPending && !winPending) {
       deathPending = true;
       gameRunning = false;
       safePlay(sounds.jumpscare);
-      setTimeout(() => {
-        deathOverlay.classList.add("active");
-      }, 100);
+      setTimeout(()=>deathOverlay.classList.add("active"), 100);
     }
 
-    // Win condition: return to throne after destroying vape
-    if (vapeDestroyed && distTo(thronePos) < 0.9 && !winPending) {
+    // win
+    if (vapeDestroyed && dist(player, thronePos)<0.9 && !winPending) {
       winPending = true;
       gameRunning = false;
       safePlay(sounds.win);
-      setTimeout(() => {
-        winOverlay.classList.add("active");
-      }, 200);
+      setTimeout(()=>winOverlay.classList.add("active"), 150);
     }
   }
 
   function draw() {
-    ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const camX = player.x*TILE - canvas.width/2;
+    const camY = player.y*TILE - canvas.height/2;
 
-    const cols = Math.floor(gameCanvas.width / DRAW_TILE);
-    const rows = Math.floor(gameCanvas.height / DRAW_TILE);
-
-    // Center camera on player
-    const camX = player.x * DRAW_TILE - gameCanvas.width / 2;
-    const camY = player.y * DRAW_TILE - gameCanvas.height / 2;
-
-    // Draw map
-    for (let y = 0; y < mapHeight; y++) {
-      for (let x = 0; x < mapWidth; x++) {
-        const c = mapGrid[y][x];
-        const gx = x;
-        const gy = y;
-        const screenX = gx * DRAW_TILE - camX;
-        const screenY = gy * DRAW_TILE - camY;
-
-        if (screenX < -DRAW_TILE || screenY < -DRAW_TILE ||
-            screenX > gameCanvas.width || screenY > gameCanvas.height) continue;
-
-        if (c === "0") {
-          drawTile("wall", (gx * DRAW_TILE - camX)/DRAW_TILE, (gy * DRAW_TILE - camY)/DRAW_TILE);
+    // map
+    for (let y=0;y<MAP_H;y++){
+      for (let x=0;x<MAP_W;x++){
+        const c = map[y][x];
+        const sx = x*TILE - camX;
+        const sy = y*TILE - camY;
+        if (c==="0") {
+          ctx.fillStyle="#1a1014";
         } else {
-          drawTile("floor", (gx * DRAW_TILE - camX)/DRAW_TILE, (gy * DRAW_TILE - camY)/DRAW_TILE);
+          ctx.fillStyle="#2b1516"; // floor
         }
+        ctx.fillRect(sx, sy, TILE, TILE);
 
-        if (c === "2") {
-          drawTile("door", (gx * DRAW_TILE - camX)/DRAW_TILE, (gy * DRAW_TILE - camY)/DRAW_TILE);
-        } else if (c === "3") {
-          drawTile("throne", (gx * DRAW_TILE - camX)/DRAW_TILE, (gy * DRAW_TILE - camY)/DRAW_TILE);
-        } else if (c === "4") {
-          drawTile("closet", (gx * DRAW_TILE - camX)/DRAW_TILE, (gy * DRAW_TILE - camY)/DRAW_TILE);
-        } else if (c === "5") {
-          drawTile("bathroomFloor", (gx * DRAW_TILE - camX)/DRAW_TILE, (gy * DRAW_TILE - camY)/DRAW_TILE);
-        } else if (c === "6") {
-          drawTile("chest", (gx * DRAW_TILE - camX)/DRAW_TILE, (gy * DRAW_TILE - camY)/DRAW_TILE);
+        if (c==="3") { // throne
+          ctx.fillStyle="#553322";
+          ctx.fillRect(sx+4, sy+4, TILE-8, TILE-8);
+        } else if (c==="2") { // closet
+          ctx.fillStyle="#1e3a3a";
+          ctx.fillRect(sx+4, sy+4, TILE-8, TILE-8);
+        } else if (c==="4") { // chest
+          ctx.fillStyle="#5a3a14";
+          ctx.fillRect(sx+6, sy+10, TILE-12, TILE-14);
+        } else if (c==="5") { // bathroom
+          ctx.fillStyle="#C7D6E6";
+          ctx.fillRect(sx, sy, TILE, TILE);
         }
       }
     }
 
-    // Items
-    function drawSprite(sprite, pos, sizeMul=1) {
-      const sx = pos.x * DRAW_TILE - camX;
-      const sy = pos.y * DRAW_TILE - camY;
-      const w = DRAW_TILE * sizeMul;
-      const h = DRAW_TILE * sizeMul;
-      ctx.drawImage(sprite, sx, sy, w, h);
+    // items
+    function drawSprite(img, pos){
+      const sx = pos.x*TILE - camX - TILE/2;
+      const sy = pos.y*TILE - camY - TILE/2;
+      ctx.drawImage(img, sx, sy, TILE, TILE);
     }
 
-    if (!haveFlashlight) {
-      drawSprite(flashlightSprite, flashlightPos);
-    }
+    if (!haveFlashlight) drawSprite(flashSprite, flashlightPos);
+    if (!haveKey) drawSprite(keySprite, keyPos);
+    if (haveKey && !haveVape && !vapeDestroyed) drawSprite(vapeSprite, chestPos);
 
-    if (!haveKey) {
-      drawSprite(keySprite, keyPos);
-    }
+    // bathroom marker
+    ctx.fillStyle="#23324a";
+    ctx.fillRect(bathroomPos.x*TILE - camX - 6, bathroomPos.y*TILE - camY - 14, 12, 16);
 
-    if (!haveVape && !vapeDestroyed && haveKey) {
-      drawSprite(vapeSprite, chestPos);
-    }
+    // player
+    drawSprite(playerSprite, player);
 
-    // Bathroom toilet icon
-    drawTile("toilet", (bathroomToiletPos.x * DRAW_TILE - camX)/DRAW_TILE,
-                         (bathroomToiletPos.y * DRAW_TILE - camY)/DRAW_TILE);
+    // horiver
+    if (horiver.active || horiver.fading) drawSprite(horiverSprite, horiver);
 
-    // Player
-    drawSprite(playerSprite, {x: player.x - 0.5, y: player.y - 0.9}, 1.2);
-
-    // Horiver
-    if (horiver.active || horiver.fading) {
-      drawSprite(horiverSprite, {x: horiver.x - 0.5, y: horiver.y - 0.9}, 1.2);
-    }
-
-    // Fog of war (short FOV)
+    // fog
     const fog = ctx.createRadialGradient(
-      gameCanvas.width/2, gameCanvas.height/2, 40,
-      gameCanvas.width/2, gameCanvas.height/2, 260
+      canvas.width/2, canvas.height/2, 40,
+      canvas.width/2, canvas.height/2, 260
     );
     fog.addColorStop(0, "rgba(0,0,0,0)");
-    fog.addColorStop(0.55, "rgba(255,255,255,0.02)");
-    fog.addColorStop(1, "rgba(255,255,255,0.85)");
+    fog.addColorStop(0.55, "rgba(255,255,255,0.03)");
+    fog.addColorStop(1, "rgba(255,255,255,0.88)");
     ctx.fillStyle = fog;
-    ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
-  function gameLoop(timestamp) {
+  function loop(ts){
     if (!gameRunning) return;
-    const delta = (timestamp - lastTime) / 1000;
-    lastTime = timestamp;
-
-    update(delta);
+    const dt = (ts-lastTime)/1000;
+    lastTime = ts;
+    update(dt);
     draw();
-
-    requestAnimationFrame(gameLoop);
+    requestAnimationFrame(loop);
   }
 
-  // -----------------------------
-  // UI EVENTS
-  // -----------------------------
+  function startLevel(){
+    resetLevel();
+    showScreen("game");
+    safePlay(sounds.start);
+    safePlay(sounds.bgm);
+    requestAnimationFrame(loop);
+  }
 
-  document.getElementById("welcomeEnterBtn").addEventListener("click", () => {
-    safePlay(sounds.menuClick);
-    welcomeOverlay.style.display = "none";
-  });
-
-  document.getElementById("lairButton").addEventListener("click", () => {
-    safePlay(sounds.menuClick);
-    startLevel();
-  });
-
-  document.getElementById("retryLevelBtn").addEventListener("click", () => {
-    safePlay(sounds.menuClick);
-    deathOverlay.classList.remove("active");
-    startLevel();
-  });
-
-  document.getElementById("backToMapBtn").addEventListener("click", () => {
-    safePlay(sounds.menuClick);
-    deathOverlay.classList.remove("active");
+  function backToMap(){
+    gameRunning=false;
     sounds.bgm.pause();
+    showScreen("map");
+  }
+
+  // ---------- UI events ----------
+  document.getElementById("welcomeEnterBtn").addEventListener("click", ()=>{
+    welcomeOverlay.style.display="none";
+    safePlay(sounds.menuClick);
+  });
+
+  document.getElementById("startLevelBtn").addEventListener("click", ()=>{
+    safePlay(sounds.menuClick);
+    startLevel();
+  });
+
+  document.getElementById("retryLevelBtn").addEventListener("click", ()=>{
+    deathOverlay.classList.remove("active");
+    safePlay(sounds.menuClick);
+    startLevel();
+  });
+
+  document.getElementById("backToMapBtn").addEventListener("click", ()=>{
+    deathOverlay.classList.remove("active");
+    safePlay(sounds.menuClick);
     backToMap();
   });
 
-  document.getElementById("winBackToMapBtn").addEventListener("click", () => {
-    safePlay(sounds.menuClick);
+  document.getElementById("winBackToMapBtn").addEventListener("click", ()=>{
     winOverlay.classList.remove("active");
-    sounds.bgm.pause();
+    safePlay(sounds.menuClick);
     backToMap();
   });
-
 </script>
 </body>
 </html>
-
