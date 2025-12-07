@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Communism Party – Hóriver's Lair (Big Map)</title>
+  <title>Communism Party – Hóriver's Lair (Prototype)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     * {
@@ -165,9 +165,9 @@
   </style>
 </head>
 <body>
-  <h1>HÓRIVER’S LAIR – LEVEL 1</h1>
+  <h1>HÓRIVER’S LAIR – LEVEL 1 (PROTOTYPE)</h1>
   <div id="subtitle">
-    Mission: find the flashlight, key, vape and bathroom in Hóriver’s endless castle
+    Mission: find the flashlight, key, vape and bathroom in Hóriver’s cursed mansion–castle
   </div>
 
   <div id="game-wrapper">
@@ -245,11 +245,11 @@
     const ctx = canvas.getContext("2d");
 
     const TILE = 32;
-    const WORLD_W = 100;
-    const WORLD_H = 100;
+    const WORLD_W = 24;
+    const WORLD_H = 24;
 
-    const playerSpeed = 110;
-    const horiverSpeed = 85;
+    const playerSpeed = 120;
+    const horiverSpeed = 90;
 
     const T_WALL = 1;
     const T_FLOOR = 0;
@@ -277,69 +277,55 @@
       }
     }
 
-    // *** DETERMINISTIC CASTLE LAYOUT (rooms + hallway) ***
-    function generateCastle() {
-      // big central castle interior
-      carveRect(8, 8, WORLD_W - 9, WORLD_H - 9);
+    // ===== Small prototype layout (castle + mansion) =====
+    function generatePrototypeMap() {
+      // central area
+      carveRect(2, 2, WORLD_W - 3, WORLD_H - 3);
 
-      // outer walls
-      for (let x = 6; x <= WORLD_W - 7; x++) {
-        world[6][x] = T_WALL;
-        world[WORLD_H - 7][x] = T_WALL;
-      }
-      for (let y = 6; y <= WORLD_H - 7; y++) {
-        world[y][6] = T_WALL;
-        world[y][WORLD_W - 7] = T_WALL;
-      }
+      // entrance hall (bottom)
+      carveRect(4, WORLD_H - 6, 10, WORLD_H - 3);
+      world[WORLD_H - 5][5] = T_START;
 
-      // main north-south hallway
-      carveRect(WORLD_W / 2 - 2, 8, WORLD_W / 2 + 2, WORLD_H - 9);
+      // corridor up from entrance
+      carveRect(6, WORLD_H - 7, 6, 13);
 
-      // throne room at top
-      carveRect(WORLD_W / 2 - 6, 8, WORLD_W / 2 + 6, 18);
-      world[12][Math.floor(WORLD_W / 2)] = T_THRONE;
+      // horizontal corridor to center
+      carveRect(6, 13, 16, 13);
 
-      // big entrance hall at bottom (start area)
-      carveRect(10, WORLD_H - 20, 40, WORLD_H - 10);
-      // corridor from entrance hall to main hallway
-      carveRect(24, WORLD_H - 20, 24, WORLD_H - 30);
-      carveRect(24, WORLD_H - 30, WORLD_W / 2 + 2, WORLD_H - 30);
+      // main central hall
+      carveRect(10, 6, 18, 16);
 
-      // side rooms along main hallway
-      for (let i = 0; i < 6; i++) {
-        const yTop = 22 + i * 10;
-        carveRect(WORLD_W / 2 - 18, yTop, WORLD_W / 2 - 8, yTop + 6); // left rooms
-        carveRect(WORLD_W / 2 + 8, yTop, WORLD_W / 2 + 18, yTop + 6); // right rooms
-      }
+      // throne room (top center)
+      carveRect(10, 3, 18, 6);
+      world[4][14] = T_THRONE;
 
-      // bathroom near top-right
-      carveRect(WORLD_W - 30, 16, WORLD_W - 14, 30);
-      world[22][WORLD_W - 22] = T_BATHROOM;
+      // bedroom (left of hall)
+      carveRect(3, 6, 9, 11);
 
-      // chest room near middle-right
-      carveRect(WORLD_W - 30, WORLD_H / 2 - 6, WORLD_W - 14, WORLD_H / 2 + 6);
-      world[Math.floor(WORLD_H / 2)][WORLD_W - 22] = T_CHEST;
+      // dining room (right of hall)
+      carveRect(19, 6, 22, 12);
 
-      // flashlight & key in left side rooms
-      world[WORLD_H - 16][14] = T_FLASHLIGHT; // flashlight bottom-left room
-      world[36][14] = T_KEY;                  // key mid-left room
+      // bathroom (top-right)
+      carveRect(19, 3, 22, 5);
+      world[4][20] = T_BATHROOM;
 
-      // start tile in entrance hall
-      world[WORLD_H - 14][16] = T_START;
+      // chest room (bottom-right of hall)
+      carveRect(19, 14, 22, 18);
+      world[16][20] = T_CHEST;
 
-      // safe closets
-      const closetTiles = [
-        [WORLD_W / 2 - 16, WORLD_H / 2],
-        [WORLD_W / 2 + 16, WORLD_H / 2 - 4],
-        [18, WORLD_H - 18],
-        [WORLD_W - 20, 20]
-      ];
-      closetTiles.forEach(([x, y]) => {
-        world[Math.floor(y)][Math.floor(x)] = T_CLOSET;
-      });
+      // flashlight in bedroom
+      world[8][5] = T_FLASHLIGHT;
+
+      // key in dining room
+      world[8][21] = T_KEY;
+
+      // closets (safe zones)
+      world[WORLD_H - 5][8] = T_CLOSET; // entrance closet
+      world[11][12] = T_CLOSET;        // central closet
+      world[15][19] = T_CLOSET;        // near chest
     }
 
-    generateCastle();
+    generatePrototypeMap();
 
     function tileAt(tx, ty) {
       if (tx < 0 || ty < 0 || tx >= WORLD_W || ty >= WORLD_H) return T_WALL;
@@ -359,12 +345,13 @@
       return null;
     }
 
-    // ===== Assets (only sprites, no tileset) =====
+    // ===== Assets =====
     const imgPlayer = makeImage("player.png");
     const imgHoriver = makeImage("horiver-character.png");
     const imgFlashlight = makeImage("pixel-flashlight.png");
     const imgKey = makeImage("key pixel.png");
     const imgVape = makeImage("vape pixel.png");
+    const imgFurniture = makeImage("furniture.png");
 
     const sounds = {
       bgm: makeSound("backg-music.mp3", true, 0.45),
@@ -400,14 +387,14 @@
     let win = false;
 
     function resetGame() {
-      const startTile = findTile(T_START) || { x: 16, y: WORLD_H - 14 };
+      const startTile = findTile(T_START) || { x: 5, y: WORLD_H - 5 };
       player.x = (startTile.x + 0.5) * TILE;
       player.y = (startTile.y + 0.5) * TILE;
       player.vx = player.vy = 0;
 
-      const throne = findTile(T_THRONE) || { x: WORLD_W / 2, y: 12 };
-      horiver.x = (throne.x + 0.5) * TILE;
-      horiver.y = (throne.y + 0.5) * TILE;
+      const throneTile = findTile(T_THRONE) || { x: 14, y: 4 };
+      horiver.x = (throneTile.x + 0.5) * TILE;
+      horiver.y = (throneTile.y + 0.5) * TILE;
       horiver.vx = horiver.vy = 0;
       horiver.active = false;
       horiver.alive = true;
@@ -420,7 +407,7 @@
       win = false;
 
       document.getElementById("subtitle").textContent =
-        "Mission: find the flashlight, key, vape and bathroom in Hóriver’s endless castle";
+        "Mission: find the flashlight, key, vape and bathroom in Hóriver’s cursed mansion–castle";
 
       hideAlert();
     }
@@ -594,6 +581,12 @@
       return { x: camX, y: camY };
     }
 
+    // Draw a 32×32 furniture tile from furniture.png at some source coords
+    function drawFurnitureTile(sx, sy, dx, dy) {
+      if (!imgFurniture.complete || !imgFurniture.naturalWidth) return;
+      ctx.drawImage(imgFurniture, sx, sy, 32, 32, dx, dy, TILE, TILE);
+    }
+
     function render() {
       const cam = getCamera();
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -609,26 +602,38 @@
           const sx = tx * TILE - cam.x;
           const sy = ty * TILE - cam.y;
 
-          // Simple colors (like the old maze)
+          // Basic colors
           if (t === T_WALL) {
-            ctx.fillStyle = "#261014";        // dark red wall
+            ctx.fillStyle = "#261014";        // wall
           } else if (t === T_CLOSET) {
-            ctx.fillStyle = "#00535f";        // teal safe closet
+            ctx.fillStyle = "#044b55";        // safe closet
           } else if (t === T_BATHROOM) {
-            ctx.fillStyle = "#4b6c88";        // blue-ish bathroom tiles
+            ctx.fillStyle = "#325c7a";        // bathroom
           } else {
             ctx.fillStyle = "#120509";        // floor
           }
           ctx.fillRect(sx, sy, TILE, TILE);
 
           if (t === T_THRONE) {
-            ctx.fillStyle = "#c28b3b";        // golden throne
+            ctx.fillStyle = "#c28b3b";
             ctx.fillRect(sx + 4, sy + 4, TILE - 8, TILE - 8);
+          }
+
+          // Simple furniture: one table in dining room, bed in bedroom, toilet in bathroom
+          // (coordinates are approximate inside furniture.png, but will show *something*).
+          if (tx === 21 && ty === 8) {
+            drawFurnitureTile(0, 0, sx, sy);          // some table/sofa
+          }
+          if (tx === 5 && ty === 8) {
+            drawFurnitureTile(96, 0, sx, sy);        // some bed/couch
+          }
+          if (tx === 20 && ty === 4) {
+            drawFurnitureTile(0, 160, sx, sy);       // some toilet/fixture
           }
         }
       }
 
-      function drawSprite(img, gx, gy, scale = 0.8) {
+      function drawSprite(img, gx, gy, scale = 0.9) {
         const screenX = gx * TILE - cam.x;
         const screenY = gy * TILE - cam.y;
         const size = TILE * scale;
@@ -647,9 +652,9 @@
       for (let ty = startTY; ty <= endTY; ty++) {
         for (let tx = startTX; tx <= endTX; tx++) {
           const t = tileAt(tx, ty);
-          if (t === T_FLASHLIGHT && !haveFlashlight) drawSprite(imgFlashlight, tx, ty, 0.9);
-          if (t === T_KEY && !haveKey) drawSprite(imgKey, tx, ty, 0.9);
-          if (t === T_CHEST && haveKey && !vapeDestroyed && !haveVape) drawSprite(imgVape, tx, ty, 0.9);
+          if (t === T_FLASHLIGHT && !haveFlashlight) drawSprite(imgFlashlight, tx, ty, 0.95);
+          if (t === T_KEY && !haveKey) drawSprite(imgKey, tx, ty, 0.95);
+          if (t === T_CHEST && haveKey && !vapeDestroyed && !haveVape) drawSprite(imgVape, tx, ty, 0.95);
         }
       }
 
@@ -661,10 +666,10 @@
       applyFog(player.x - cam.x, player.y - cam.y);
     }
 
-    // *** Fog: MUCH lighter so you can see rooms clearly ***
+    // Fog: much lighter, small map
     function applyFog(pScreenX, pScreenY) {
       ctx.save();
-      ctx.fillStyle = "rgba(0,0,0,0.65)";   // lighter fog
+      ctx.fillStyle = "rgba(0,0,0,0.55)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.globalCompositeOperation = "destination-out";
 
@@ -674,9 +679,9 @@
       ctx.fill();
 
       const dirLen = Math.hypot(lastDir.x, lastDir.y) || 1;
-      const fx = pScreenX + (lastDir.x / dirLen) * 220;
-      const fy = pScreenY + (lastDir.y / dirLen) * 220;
-      const flashlightRadius = haveFlashlight ? 280 : 210;
+      const fx = pScreenX + (lastDir.x / dirLen) * 210;
+      const fy = pScreenY + (lastDir.y / dirLen) * 210;
+      const flashlightRadius = haveFlashlight ? 260 : 200;
 
       ctx.beginPath();
       ctx.arc(fx, fy, flashlightRadius, 0, Math.PI * 2);
@@ -796,4 +801,3 @@
   </script>
 </body>
 </html>
-
