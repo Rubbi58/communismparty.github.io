@@ -80,4 +80,81 @@
       if (e.key === "w" || e.key === "W") keys.w = true;
       if (e.key === "a" || e.key === "A") keys.a = true;
       if (e.key === "s" || e.key === "S") keys.s = true;
-      if (e.key === "d" ||
+      if (e.key === "d" || e.key === "D") keys.d = true;
+    });
+
+    window.addEventListener("keyup", (e) => {
+      if (e.key === "w" || e.key === "W") keys.w = false;
+      if (e.key === "a" || e.key === "A") keys.a = false;
+      if (e.key === "s" || e.key === "S") keys.s = false;
+      if (e.key === "d" || e.key === "D") keys.d = false;
+    });
+
+    let last = performance.now();
+
+    function update(dt) {
+      let dx = 0;
+      let dy = 0;
+      if (keys.w) dy -= 1;
+      if (keys.s) dy += 1;
+      if (keys.a) dx -= 1;
+      if (keys.d) dx += 1;
+
+      const len = Math.hypot(dx, dy);
+      if (len > 0) {
+        dx /= len;
+        dy /= len;
+      }
+
+      const step = player.speed * dt;
+      const nx = player.x + dx * step;
+      const ny = player.y + dy * step;
+
+      if (isFloor(Math.floor(nx), Math.floor(player.y))) player.x = nx;
+      if (isFloor(Math.floor(player.x), Math.floor(ny))) player.y = ny;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const camX = player.x * TILE - canvas.width / 2;
+      const camY = player.y * TILE - canvas.height / 2;
+
+      for (let y = 0; y < MAP_H; y++) {
+        for (let x = 0; x < MAP_W; x++) {
+          const sx = x * TILE - camX;
+          const sy = y * TILE - camY;
+
+          if (map[y][x] === "0") {
+            ctx.fillStyle = "#22080c"; // wall
+          } else {
+            ctx.fillStyle = "#4a1517"; // floor
+          }
+          ctx.fillRect(sx, sy, TILE, TILE);
+        }
+      }
+
+      // player
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(
+        player.x * TILE - camX - 10,
+        player.y * TILE - camY - 10,
+        20,
+        20
+      );
+    }
+
+    function loop(timestamp) {
+      const dt = (timestamp - last) / 1000;
+      last = timestamp;
+
+      update(dt);
+      draw();
+
+      requestAnimationFrame(loop);
+    }
+
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
