@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -181,7 +181,7 @@
   <div id="game-wrapper">
     <canvas id="game" width="800" height="600"></canvas>
     <div id="controls">
-      Move with <b>W A S D</b>. <b>R</b> = interact (pick up, flush, claim). Closets = safe. Hóriver kills on contact.
+      Move with <b>W A S D</b>. <b>R</b> = interact (pick up, flush, claim). <b>F</b> = hide in closets. Closets only protect you while hiding. Hóriver kills on contact.
     </div>
     <div id="interactionPrompt"></div>
   </div>
@@ -258,7 +258,7 @@
     const WORLD_H = 24;
 
     const playerSpeed = 120;
-    const horiverSpeed = 90;
+    const horiverBaseSpeed = 90;
 
     const T_WALL = 1;
     const T_FLOOR = 0;
@@ -385,6 +385,7 @@
     // ===== Game state =====
     let player = { x: 0, y: 0, vx: 0, vy: 0 };
     let horiver = { x: 0, y: 0, vx: 0, vy: 0, active: false, alive: true };
+    let horiverFacing = { x: 0, y: 1 }; // for vision cone
     let keys = { w: false, a: false, s: false, d: false };
     let lastDir = { x: 0, y: 1 };
 
@@ -395,7 +396,13 @@
     let gameOver = false;
     let win = false;
 
-    // interaction system (press R)
+    // stealth / rage
+    let playerHidden = false;
+    let closetNearby = false;
+    let closetTile = null;
+    let horiverEnraged = false;
+
+    // interaction system (press R / F)
     let interactionPrompt = "";
     let interactionAction = null;
     const interactionEl = document.getElementById("interactionPrompt");
@@ -418,6 +425,7 @@
       horiver.vx = horiver.vy = 0;
       horiver.active = false;
       horiver.alive = true;
+      horiverFacing = { x: 0, y: 1 };
 
       haveFlashlight = false;
       haveKey = false;
@@ -425,6 +433,11 @@
       vapeDestroyed = false;
       gameOver = false;
       win = false;
+
+      playerHidden = false;
+      closetNearby = false;
+      closetTile = null;
+      horiverEnraged = false;
 
       document.getElementById("subtitle").textContent =
         "Mission: find the flashlight, key, vape and bathroom in Hóriver’s cursed mansion–castle";
@@ -440,6 +453,16 @@
       if (k === "s") keys.s = true;
       if (k === "a") keys.a = true;
       if (k === "d") keys.d = true;
+
+      if (k === "f") {
+        if (
+          !document.getElementById("welcomeOverlay").classList.contains("active") &&
+          !gameOver &&
+          !win
+        ) {
+          toggleHideInCloset();
+        }
+      }
 
       if (k === "r") {
         if (
@@ -487,71 +510,125 @@
       return tileAt(tx, ty) === T_CLOSET;
     }
 
+    // helper: find nearby tiles of certain types within a radius (pixels)
+    function findNearbyTile(types, px, py, range = 32) {
+      const tx = Math.floor(px / TILE);
+      const ty = Math.floor(py / TILE);
+
+      let best = null;
+      let bestDist = Infinity;
+
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const nx = tx + dx;
+          const ny = ty + dy;
+          const tile = tileAt(nx, ny);
+          if (types.includes(tile)) {
+            const cx = (nx + 0.5) * TILE;
+            const cy = (ny + 0.5) * TILE;
+            const d = Math.hypot(px - cx, py - cy);
+            if (d < range && d < bestDist) {
+              bestDist = d;
+              best = { x: nx, y: ny, tile };
+            }
+          }
+        }
+      }
+      return best;
+    }
+
     function pickupCheck() {
       clearInteraction();
 
-      const tx = Math.floor(player.x / TILE);
-      const ty = Math.floor(player.y / TILE);
-      const t = tileAt(tx, ty);
+      const px = player.x;
+      const py = player.y;
 
-      // flashlight
-      if (t === T_FLASHLIGHT && !haveFlashlight) {
-        interactionPrompt = 'Press R to pick up flashlight';
-        interactionAction = () => {
-          haveFlashlight = true;
-          world[ty][tx] = T_FLOOR;
-          safePlay(sounds.pickup);
-          document.getElementById("subtitle").textContent =
-            "Mission: find the key to Hóriver’s chest";
-        };
+      // Nearby items
+      const near = findNearbyTile(
+        [T_FLASHLIGHT, T_KEY, T_CHEST, T_BATHROOM, T_THRONE],
+        px, py, 34
+      );
+
+      if (near) {
+        const { x: tx, y: ty, tile: t } = near;
+
+        // flashlight
+        if (t === T_FLASHLIGHT && !haveFlashlight) {
+          interactionPrompt = 'Press R to pick up flashlight';
+          interactionAction = () => {
+            haveFlashlight = true;
+            world[ty][tx] = T_FLOOR;
+            safePlay(sounds.pickup);
+            document.getElementById("subtitle").textContent =
+              "Mission: find the key to Hóriver’s chest";
+          };
+        }
+
+        // key
+        if (t === T_KEY && !haveKey) {
+          interactionPrompt = 'Press R to pick up key';
+          interactionAction = () => {
+            haveKey = true;
+            world[ty][tx] = T_FLOOR;
+            safePlay(sounds.pickup);
+            awakenHoriver();
+            document.getElementById("subtitle").textContent =
+              "Mission: reach the chest and steal the vape";
+          };
+        }
+
+        // chest -> vape
+        if (t === T_CHEST && haveKey && !haveVape && !vapeDestroyed) {
+          interactionPrompt = 'Press R to steal Horiver\'s vape';
+          interactionAction = () => {
+            haveVape = true;
+            safePlay(sounds.door);
+            safePlay(sounds.pickup);
+            document.getElementById("subtitle").textContent =
+              "Mission: find the bathroom and flush the vape";
+          };
+        }
+
+        // bathroom flush
+        if (t === T_BATHROOM && haveVape && !vapeDestroyed) {
+          interactionPrompt = 'Press R to flush the vape';
+          interactionAction = () => {
+            haveVape = false;
+            vapeDestroyed = true;
+            safePlay(sounds.flush);
+            safePlay(sounds.deathScream);
+            horiver.alive = false;
+            horiver.active = false;
+            document.getElementById("subtitle").textContent =
+              "Mission: return to the throne to claim your reward";
+          };
+        }
+
+        // throne -> finish
+        if (t === T_THRONE && vapeDestroyed && !win) {
+          interactionPrompt = 'Press R to claim your reward';
+          interactionAction = () => {
+            finishLevel();
+          };
+        }
       }
 
-      // key
-      if (t === T_KEY && !haveKey) {
-        interactionPrompt = 'Press R to pick up key';
-        interactionAction = () => {
-          haveKey = true;
-          world[ty][tx] = T_FLOOR;
-          safePlay(sounds.pickup);
-          awakenHoriver();
-          document.getElementById("subtitle").textContent =
-            "Mission: reach the chest and steal the vape";
-        };
-      }
+      // closet detection (for F)
+      closetNearby = false;
+      closetTile = null;
+      const nearCloset = findNearbyTile([T_CLOSET], px, py, 40);
+      if (nearCloset) {
+        closetNearby = true;
+        closetTile = { x: nearCloset.x, y: nearCloset.y };
+        const closetMsg = playerHidden
+          ? "Press F to leave closet"
+          : "Press F to hide in closet";
 
-      // chest -> vape
-      if (t === T_CHEST && haveKey && !haveVape && !vapeDestroyed) {
-        interactionPrompt = 'Press R to steal Horiver\'s vape';
-        interactionAction = () => {
-          haveVape = true;
-          safePlay(sounds.door);
-          safePlay(sounds.pickup);
-          document.getElementById("subtitle").textContent =
-            "Mission: find the bathroom and flush the vape";
-        };
-      }
-
-      // bathroom flush
-      if (t === T_BATHROOM && haveVape && !vapeDestroyed) {
-        interactionPrompt = 'Press R to flush the vape';
-        interactionAction = () => {
-          haveVape = false;
-          vapeDestroyed = true;
-          safePlay(sounds.flush);
-          safePlay(sounds.deathScream);
-          horiver.alive = false;
-          horiver.active = false;
-          document.getElementById("subtitle").textContent =
-            "Mission: return to the throne to claim your reward";
-        };
-      }
-
-      // throne -> finish
-      if (t === T_THRONE && vapeDestroyed && !win) {
-        interactionPrompt = 'Press R to claim your reward';
-        interactionAction = () => {
-          finishLevel();
-        };
+        if (!interactionPrompt) {
+          interactionPrompt = closetMsg;
+        } else {
+          interactionPrompt += " | " + closetMsg;
+        }
       }
 
       interactionEl.textContent = interactionPrompt;
@@ -587,7 +664,36 @@
       else ent.vy = 0;
     }
 
+    function toggleHideInCloset() {
+      // leave closet
+      if (playerHidden) {
+        playerHidden = false;
+        interactionPrompt = "";
+        interactionEl.textContent = "";
+        return;
+      }
+
+      // enter closet
+      if (!closetNearby || !closetTile) return;
+
+      playerHidden = true;
+      player.x = (closetTile.x + 0.5) * TILE;
+      player.y = (closetTile.y + 0.5) * TILE;
+      player.vx = player.vy = 0;
+
+      horiverEnraged = false; // lose the lock when you hide
+
+      interactionPrompt = "Hidden in closet. Press F to leave.";
+      interactionEl.textContent = interactionPrompt;
+    }
+
     function updateMovement(dt) {
+      if (playerHidden) {
+        player.vx = player.vy = 0;
+        pickupCheck(); // still update F prompt etc.
+        return;
+      }
+
       let dx = 0, dy = 0;
       if (keys.w) dy -= 1;
       if (keys.s) dy += 1;
@@ -614,12 +720,38 @@
 
       const dx = player.x - horiver.x;
       const dy = player.y - horiver.y;
-      const dist = Math.hypot(dx, dy);
+      const dist = Math.hypot(dx, dy) || 1;
+
+      // update facing whenever he moves
+      const dirX = dx / dist;
+      const dirY = dy / dist;
       if (dist > 1) {
-        const dirX = dx / dist;
-        const dirY = dy / dist;
-        horiver.vx = dirX * horiverSpeed;
-        horiver.vy = dirY * horiverSpeed;
+        horiverFacing.x = dirX;
+        horiverFacing.y = dirY;
+      }
+
+      // vision cone: slim but long, only matters if you have the vape and aren't hidden
+      if (!horiverEnraged && haveVape && !playerHidden) {
+        const maxRange = 260;
+        if (dist < maxRange) {
+          const toPlayerX = dx / dist;
+          const toPlayerY = dy / dist;
+          const dot =
+            toPlayerX * horiverFacing.x + toPlayerY * horiverFacing.y; // cos(angle)
+
+          const coneCos = Math.cos(20 * Math.PI / 180); // ~0.94, narrow
+          if (dot > coneCos) {
+            horiverEnraged = true;
+            showAlert();
+          }
+        }
+      }
+
+      const speed = horiverEnraged ? horiverBaseSpeed * 1.5 : horiverBaseSpeed;
+
+      if (dist > 1) {
+        horiver.vx = dirX * speed;
+        horiver.vy = dirY * speed;
       } else {
         horiver.vx = horiver.vy = 0;
       }
@@ -630,7 +762,7 @@
       const pty = Math.floor(player.y / TILE);
       const htx = Math.floor(horiver.x / TILE);
       const hty = Math.floor(horiver.y / TILE);
-      if (ptx === htx && pty === hty && !isCloset(ptx, pty) && !vapeDestroyed) {
+      if (ptx === htx && pty === hty && !playerHidden && !vapeDestroyed) {
         killPlayer();
       }
     }
@@ -702,7 +834,8 @@
         const size = TILE * scale;
         const dx = screenX + (TILE - size) / 2;
         const dy = screenY + (TILE - size) / 2;
-        if (screenX + TILE < 0 || screenY + TILE < 0 || screenX > canvas.width || screenY > canvas.height) return;
+        if (screenX + TILE < 0 || screenY + TILE < 0 ||
+            screenX > canvas.width || screenY > canvas.height) return;
 
         if (img.complete && img.naturalWidth) {
           ctx.drawImage(img, dx, dy, size, size);
@@ -744,34 +877,32 @@
       applyFog(player.x - cam.x, player.y - cam.y);
     }
 
-    // Fog: always small aura, cone only if flashlight is owned
+    // Proper fog: dark everywhere with a bright circular FOV around player
     function applyFog(pScreenX, pScreenY) {
       ctx.save();
 
-      // overall darkness
-      ctx.fillStyle = "rgba(0,0,0,0.45)";
+      // full-screen darkness
+      ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // cut bright areas out of darkness
+      // punch out a radial gradient of light
       ctx.globalCompositeOperation = "destination-out";
 
-      // small glow around player (slightly bigger with flashlight)
-      const baseRadius = haveFlashlight ? 120 : 90;
+      const innerRadius = haveFlashlight ? 40 : 20;
+      const outerRadius = haveFlashlight ? 260 : 150;
+
+      const g = ctx.createRadialGradient(
+        pScreenX, pScreenY, innerRadius,
+        pScreenX, pScreenY, outerRadius
+      );
+      g.addColorStop(0, "rgba(0,0,0,1)");
+      g.addColorStop(0.6, "rgba(0,0,0,0.4)");
+      g.addColorStop(1, "rgba(0,0,0,0)");
+
+      ctx.fillStyle = g;
       ctx.beginPath();
-      ctx.arc(pScreenX, pScreenY, baseRadius, 0, Math.PI * 2);
+      ctx.arc(pScreenX, pScreenY, outerRadius, 0, Math.PI * 2);
       ctx.fill();
-
-      // flashlight cone ONLY if we have the flashlight
-      if (haveFlashlight) {
-        const dirLen = Math.hypot(lastDir.x, lastDir.y) || 1;
-        const fx = pScreenX + (lastDir.x / dirLen) * 150;
-        const fy = pScreenY + (lastDir.y / dirLen) * 150;
-        const flashlightRadius = 190;
-
-        ctx.beginPath();
-        ctx.arc(fx, fy, flashlightRadius, 0, Math.PI * 2);
-        ctx.fill();
-      }
 
       ctx.restore();
     }
@@ -887,3 +1018,4 @@
   </script>
 </body>
 </html>
+
