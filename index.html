@@ -277,12 +277,12 @@
       }
     }
 
-    // *** DETERMINISTIC CASTLE LAYOUT ***
+    // *** DETERMINISTIC CASTLE LAYOUT (rooms + hallway) ***
     function generateCastle() {
-      // big central rectangle
+      // big central castle interior
       carveRect(8, 8, WORLD_W - 9, WORLD_H - 9);
 
-      // outer ring walls around that rectangle
+      // outer walls
       for (let x = 6; x <= WORLD_W - 7; x++) {
         world[6][x] = T_WALL;
         world[WORLD_H - 7][x] = T_WALL;
@@ -292,7 +292,7 @@
         world[y][WORLD_W - 7] = T_WALL;
       }
 
-      // long main north-south hallway
+      // main north-south hallway
       carveRect(WORLD_W / 2 - 2, 8, WORLD_W / 2 + 2, WORLD_H - 9);
 
       // throne room at top
@@ -305,14 +305,14 @@
       carveRect(24, WORLD_H - 20, 24, WORLD_H - 30);
       carveRect(24, WORLD_H - 30, WORLD_W / 2 + 2, WORLD_H - 30);
 
-      // side rooms along hallway
+      // side rooms along main hallway
       for (let i = 0; i < 6; i++) {
         const yTop = 22 + i * 10;
-        carveRect(WORLD_W / 2 - 18, yTop, WORLD_W / 2 - 8, yTop + 6);
-        carveRect(WORLD_W / 2 + 8, yTop, WORLD_W / 2 + 18, yTop + 6);
+        carveRect(WORLD_W / 2 - 18, yTop, WORLD_W / 2 - 8, yTop + 6); // left rooms
+        carveRect(WORLD_W / 2 + 8, yTop, WORLD_W / 2 + 18, yTop + 6); // right rooms
       }
 
-      // bathroom area near top-right
+      // bathroom near top-right
       carveRect(WORLD_W - 30, 16, WORLD_W - 14, 30);
       world[22][WORLD_W - 22] = T_BATHROOM;
 
@@ -321,13 +321,13 @@
       world[Math.floor(WORLD_H / 2)][WORLD_W - 22] = T_CHEST;
 
       // flashlight & key in left side rooms
-      world[WORLD_H - 16][14] = T_FLASHLIGHT; // flashlight bottom-left
-      world[36][14] = T_KEY;                  // key mid-left
+      world[WORLD_H - 16][14] = T_FLASHLIGHT; // flashlight bottom-left room
+      world[36][14] = T_KEY;                  // key mid-left room
 
       // start tile in entrance hall
       world[WORLD_H - 14][16] = T_START;
 
-      // a few closets (safe rooms)
+      // safe closets
       const closetTiles = [
         [WORLD_W / 2 - 16, WORLD_H / 2],
         [WORLD_W / 2 + 16, WORLD_H / 2 - 4],
@@ -359,21 +359,12 @@
       return null;
     }
 
-    // ===== Assets =====
-    const imgTiles = makeImage("dungeons-pack.png");
+    // ===== Assets (only sprites, no tileset) =====
     const imgPlayer = makeImage("player.png");
     const imgHoriver = makeImage("horiver-character.png");
     const imgFlashlight = makeImage("pixel-flashlight.png");
     const imgKey = makeImage("key pixel.png");
     const imgVape = makeImage("vape pixel.png");
-
-    const SHEET_TILE = 16;
-    const tileSrc = {
-      floor: { sx: 16, sy: 16 },
-      wall: { sx: 16 * 4, sy: 16 },
-      closet: { sx: 16 * 6, sy: 16 * 3 },
-      bathroom: { sx: 16 * 8, sy: 16 * 2 }
-    };
 
     const sounds = {
       bgm: makeSound("backg-music.mp3", true, 0.45),
@@ -603,15 +594,6 @@
       return { x: camX, y: camY };
     }
 
-    function drawTileFromSheet(type, sx, sy, dx, dy) {
-      if (imgTiles.complete && imgTiles.naturalWidth) {
-        ctx.drawImage(imgTiles, sx, sy, SHEET_TILE, SHEET_TILE, dx, dy, TILE, TILE);
-      } else {
-        ctx.fillStyle = type === T_WALL ? "#3b1517" : "#221015";
-        ctx.fillRect(dx, dy, TILE, TILE);
-      }
-    }
-
     function render() {
       const cam = getCamera();
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -627,18 +609,20 @@
           const sx = tx * TILE - cam.x;
           const sy = ty * TILE - cam.y;
 
+          // Simple colors (like the old maze)
           if (t === T_WALL) {
-            drawTileFromSheet(T_WALL, tileSrc.wall.sx, tileSrc.wall.sy, sx, sy);
+            ctx.fillStyle = "#261014";        // dark red wall
           } else if (t === T_CLOSET) {
-            drawTileFromSheet(T_FLOOR, tileSrc.closet.sx, tileSrc.closet.sy, sx, sy);
+            ctx.fillStyle = "#00535f";        // teal safe closet
           } else if (t === T_BATHROOM) {
-            drawTileFromSheet(T_FLOOR, tileSrc.bathroom.sx, tileSrc.bathroom.sy, sx, sy);
+            ctx.fillStyle = "#4b6c88";        // blue-ish bathroom tiles
           } else {
-            drawTileFromSheet(T_FLOOR, tileSrc.floor.sx, tileSrc.floor.sy, sx, sy);
+            ctx.fillStyle = "#120509";        // floor
           }
+          ctx.fillRect(sx, sy, TILE, TILE);
 
           if (t === T_THRONE) {
-            ctx.fillStyle = "#7a4b2a";
+            ctx.fillStyle = "#c28b3b";        // golden throne
             ctx.fillRect(sx + 4, sy + 4, TILE - 8, TILE - 8);
           }
         }
@@ -677,14 +661,14 @@
       applyFog(player.x - cam.x, player.y - cam.y);
     }
 
-    // *** Fog tuned so you can SEE stuff ***
+    // *** Fog: MUCH lighter so you can see rooms clearly ***
     function applyFog(pScreenX, pScreenY) {
       ctx.save();
-      ctx.fillStyle = "rgba(0,0,0,0.9)";
+      ctx.fillStyle = "rgba(0,0,0,0.65)";   // lighter fog
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.globalCompositeOperation = "destination-out";
 
-      const baseRadius = haveFlashlight ? 160 : 130;       // larger than before
+      const baseRadius = haveFlashlight ? 190 : 150;
       ctx.beginPath();
       ctx.arc(pScreenX, pScreenY, baseRadius, 0, Math.PI * 2);
       ctx.fill();
@@ -692,7 +676,7 @@
       const dirLen = Math.hypot(lastDir.x, lastDir.y) || 1;
       const fx = pScreenX + (lastDir.x / dirLen) * 220;
       const fy = pScreenY + (lastDir.y / dirLen) * 220;
-      const flashlightRadius = haveFlashlight ? 260 : 190;
+      const flashlightRadius = haveFlashlight ? 280 : 210;
 
       ctx.beginPath();
       ctx.arc(fx, fy, flashlightRadius, 0, Math.PI * 2);
@@ -812,3 +796,4 @@
   </script>
 </body>
 </html>
+
