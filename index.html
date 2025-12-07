@@ -2,132 +2,167 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Communism Party – Simple Move Test</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Communism Party – Hóriver’s Lair (Prototype)</title>
   <style>
     body {
+      background: #050104;
+      color: #f7e3c8;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      text-align: center;
       margin: 0;
-      background: #000;
-      color: #ffcc66;
-      font-family: system-ui, sans-serif;
-      overflow: hidden;
+      padding: 0;
     }
-    #hud {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 30px;
-      background: #100408;
-      color: #ffcc66;
-      font-size: 12px;
-      line-height: 30px;
-      padding: 0 10px;
+    h1 {
+      margin-top: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-size: 18px;
+      color: #ffdd88;
+    }
+    #subtitle {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-top: 4px;
+      color: #ffbb66;
+    }
+    #game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: calc(100vh - 80px);
     }
     canvas {
-      position: fixed;
-      top: 30px;
-      left: 0;
-      width: 100vw;
-      height: calc(100vh - 30px);
-      display: block;
+      border: 2px solid #ffcc66;
       background: #000;
+      image-rendering: pixelated;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+    }
+    #message {
+      margin-top: 12px;
+      font-size: 16px;
+      min-height: 24px;
+      color: #ff9999;
+    }
+    #controls {
+      margin-top: 8px;
+      font-size: 13px;
+      opacity: 0.9;
+      color: #ffe6bf;
     }
   </style>
 </head>
 <body>
-  <div id="hud">
-    TEST: Click anywhere, then use W A S D to move the white square. Last key will show here.
+  <h1>HÓRIVER’S LAIR – LEVEL 1</h1>
+  <div id="subtitle">Mission: Find the exit and escape the vape castle</div>
+
+  <div id="game-container">
+    <canvas id="game" width="400" height="400"></canvas>
+    <div id="message"></div>
+    <div id="controls">Move with <b>W A S D</b></div>
   </div>
-  <canvas id="game"></canvas>
 
   <script>
-    const hud = document.getElementById("hud");
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const messageEl = document.getElementById('message');
 
-    function resize() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight - 30;
-      draw();
-    }
-    window.addEventListener("resize", resize);
-    resize();
+    const tileSize = 40;
+    const rows = 10;
+    const cols = 10;
 
-    const TILE = 40;
-    const MAP_W = 15;
-    const MAP_H = 10;
-
-    // 0 = wall, 1 = floor
-    const map = [
-      "000000000000000",
-      "011111111111110",
-      "011000001000010",
-      "011000001000010",
-      "011111111111110",
-      "011000000000010",
-      "011000011100010",
-      "011000010000010",
-      "011111111111110",
-      "000000000000000"
+    // 0 = floor, 1 = wall, 2 = exit (toilet / throne room door)
+    const maze = [
+      [0,1,1,1,1,1,1,1,1,1],
+      [0,0,0,0,0,1,0,0,0,1],
+      [1,0,1,1,0,1,0,1,0,1],
+      [1,0,1,0,0,0,0,1,0,1],
+      [1,0,1,0,1,1,0,1,0,1],
+      [1,0,0,0,0,0,0,1,0,1],
+      [1,1,1,1,1,1,0,1,0,1],
+      [1,0,0,0,0,0,0,1,0,1],
+      [1,0,1,1,1,1,1,1,0,1],
+      [1,0,0,0,0,0,0,0,2,1]
     ];
 
-    function isFloor(x,y){
-      if (x<0||y<0||x>=MAP_W||y>=MAP_H) return false;
-      return map[y][x] === "1";
-    }
+    let player = { x: 0, y: 0 };
+    let gameWon = false;
 
-    const player = { x: 3.5, y: 5.5 };
+    function drawMaze() {
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const cell = maze[y][x];
 
-    function draw() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-
-      const camX = player.x*TILE - canvas.width/2;
-      const camY = player.y*TILE - canvas.height/2;
-
-      for (let y=0;y<MAP_H;y++){
-        for (let x=0;x<MAP_W;x++){
-          const sx = x*TILE - camX;
-          const sy = y*TILE - camY;
-          if (map[y][x]==="0") {
-            ctx.fillStyle="#22080c"; // walls
+          if (cell === 1) {
+            // castle wall
+            ctx.fillStyle = '#3b1517';
+          } else if (cell === 2) {
+            // exit door (bathroom / throne)
+            ctx.fillStyle = '#0f7038';
           } else {
-            ctx.fillStyle="#4a1517"; // floor
+            // floor in smoky corridor
+            ctx.fillStyle = '#15060a';
           }
-          ctx.fillRect(sx,sy,TILE,TILE);
+
+          ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+          ctx.strokeStyle = '#2a0a0f';
+          ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
         }
       }
+    }
 
-      // player
-      ctx.fillStyle="#ffffff";
+    function drawPlayer() {
+      ctx.fillStyle = '#0cf';
+      const pad = 6;
       ctx.fillRect(
-        player.x*TILE - camX - 10,
-        player.y*TILE - camY - 10,
-        20,
-        20
+        player.x * tileSize + pad,
+        player.y * tileSize + pad,
+        tileSize - pad * 2,
+        tileSize - pad * 2
       );
     }
 
-    draw(); // initial draw
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawMaze();
+      drawPlayer();
+    }
 
-    // Move on keydown, no game loop
-    window.addEventListener("keydown", (e) => {
-      hud.textContent = "Last key: " + e.key + "  –  use W A S D to move";
+    function canMoveTo(x, y) {
+      if (x < 0 || y < 0 || x >= cols || y >= rows) return false;
+      return maze[y][x] !== 1;
+    }
 
-      let nx = player.x;
-      let ny = player.y;
-
-      if (e.key === "w" || e.key === "W") ny -= 0.5;
-      if (e.key === "s" || e.key === "S") ny += 0.5;
-      if (e.key === "a" || e.key === "A") nx -= 0.5;
-      if (e.key === "d" || e.key === "D") nx += 0.5;
-
-      if (isFloor(Math.floor(nx), Math.floor(ny))) {
-        player.x = nx;
-        player.y = ny;
-        draw();
+    function checkWin() {
+      if (maze[player.y][player.x] === 2 && !gameWon) {
+        gameWon = true;
+        messageEl.textContent = "Mission complete: the vape is destroyed and Hóriver screams in the distance.";
       }
-    });
+    }
+
+    function handleKey(e) {
+      if (gameWon) return;
+
+      let newX = player.x;
+      let newY = player.y;
+
+      const key = e.key.toLowerCase();
+      if (key === 'w') newY--;
+      if (key === 's') newY++;
+      if (key === 'a') newX--;
+      if (key === 'd') newX++;
+
+      if (canMoveTo(newX, newY)) {
+        player.x = newX;
+        player.y = newY;
+        draw();
+        checkWin();
+      }
+    }
+
+    window.addEventListener('keydown', handleKey);
+    draw();
   </script>
 </body>
 </html>
