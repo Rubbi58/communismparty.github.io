@@ -2,775 +2,140 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Communism Party – Hóriver’s Lair</title>
+  <title>TEST – Simple Room</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
     body {
-      background: #080104;
-      color: #f7e3c8;
-      overflow: hidden;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-    .screen {
-      position: fixed;
-      inset: 0;
-      display: none;
-    }
-
-    .screen.active {
-      display: block;
-    }
-
-    /* WELCOME POPUP */
-
-    #welcomeOverlay {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: radial-gradient(circle at top, #5c0000 0, #050104 60%);
-      z-index: 30;
-    }
-
-    .welcome-card {
-      border-radius: 1.5rem;
-      border: 2px solid #ffcc66;
-      background:
-        linear-gradient(135deg, rgba(255,204,102,0.1), rgba(0,0,0,0.95)),
-        repeating-linear-gradient(-45deg, #5a0202 0, #5a0202 4px, #3b0101 4px, #3b0101 8px);
-      padding: 2rem 2.5rem;
-      max-width: 480px;
-      text-align: center;
-      box-shadow: 0 24px 60px rgba(0,0,0,0.75);
-    }
-
-    .welcome-card h1 {
-      font-size: 1.8rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      margin-bottom: 1.4rem;
-      color: #ffdd88;
-    }
-
-    .welcome-card img {
-      max-width: 220px;
-      display: block;
-      margin: 0 auto 1rem;
-      image-rendering: pixelated;
-    }
-
-    .btn-primary {
-      border-radius: 999px;
-      padding: 0.7rem 1.6rem;
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      border: none;
-      background: linear-gradient(135deg, #ffcc66, #ff4848);
-      color: #3b0000;
-      font-weight: 800;
-      box-shadow: 0 14px 28px rgba(0,0,0,0.7);
-    }
-
-    .btn-primary:hover {
-      filter: brightness(1.05);
-      transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-      border-radius: 999px;
-      border: 1px solid #ffcc66;
-      background: transparent;
-      color: #ffdd88;
-      text-transform: uppercase;
-      letter-spacing: 0.09em;
-      font-size: 0.8rem;
-      padding: 0.6rem 1.4rem;
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255,204,102,0.09);
-    }
-
-    /* SIMPLE LEVEL SELECT SCREEN */
-
-    #mapScreen {
-      background: radial-gradient(circle at top, #5c0000 0, #050104 60%);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .map-header {
-      padding: 0.9rem 1.4rem;
-      border-bottom: 1px solid rgba(255,204,102,0.4);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      color: #ffdd88;
-      text-transform: uppercase;
-      font-size: 0.8rem;
-      letter-spacing: 0.12em;
-    }
-
-    .map-main {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .map-main::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image:
-        radial-gradient(circle at top left, #7a1010 0, transparent 40%),
-        radial-gradient(circle at bottom right, #133015 0, transparent 45%);
-      opacity: 0.9;
-    }
-
-    .map-card {
-      position: relative;
-      z-index: 2;
-      border-radius: 1.2rem;
-      border: 2px solid #ffcc66;
-      background: rgba(0,0,0,0.85);
-      padding: 1.5rem 2rem;
-      text-align: center;
-      box-shadow: 0 20px 45px rgba(0,0,0,0.8);
-    }
-
-    .map-card h2 {
-      font-size: 1.2rem;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      color: #ffdd88;
-      margin-bottom: 0.7rem;
-    }
-
-    .map-card p {
-      font-size: 0.9rem;
-      margin-bottom: 1.2rem;
-      color: #ffe8c2;
-    }
-
-    .map-card img {
-      max-width: 160px;
-      display: block;
-      margin: 0 auto 1rem;
-      image-rendering: pixelated;
-    }
-
-    .map-footer {
-      padding: 0.6rem 1.4rem;
-      font-size: 0.75rem;
-      color: #f7e3c8;
-      border-top: 1px solid rgba(255,204,102,0.4);
-      text-align: center;
-      opacity: 0.9;
-    }
-
-    /* GAME SCREEN */
-
-    #gameScreen {
-      background: #050104;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .hud {
-      padding: 0.6rem 1.2rem;
-      border-bottom: 1px solid rgba(255,204,102,0.4);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.8rem;
-    }
-
-    .mission {
-      text-transform: uppercase;
-      letter-spacing: 0.09em;
-      color: #ffdd88;
-    }
-
-    .hud-right {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      font-size: 0.78rem;
-      color: #ffe6bf;
-    }
-
-    .sprint-bar {
-      width: 120px;
-      height: 10px;
-      border-radius: 999px;
-      border: 1px solid #ffcc66;
-      overflow: hidden;
-      background: rgba(0,0,0,0.7);
-    }
-
-    .sprint-bar-inner {
-      height: 100%;
-      width: 100%;
-      background: linear-gradient(90deg, #ffcc66, #ff4444);
-      transform-origin: left center;
-    }
-
-    #gameCanvas {
-      flex: 1;
-      display: block;
-      width: 100%;
-      height: calc(100% - 60px);
-      image-rendering: pixelated;
+      margin: 0;
       background: #000;
+      color: #fff;
+      font-family: system-ui, sans-serif;
+      overflow: hidden;
     }
-
-    /* OVERLAYS */
-
-    .overlay {
+    #hud {
       position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.87);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 40;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 30px;
+      background: #100408;
+      color: #ffcc66;
+      font-size: 12px;
+      line-height: 30px;
+      padding: 0 10px;
     }
-
-    .overlay.active {
-      display: flex;
-    }
-
-    .overlay-card {
-      border-radius: 1.2rem;
-      border: 2px solid #ffcc66;
-      background: radial-gradient(circle at top, #4a0000 0, #050104 60%);
-      padding: 1.4rem 1.8rem 1.8rem;
-      max-width: 460px;
-      text-align: center;
-      color: #ffe6bf;
-      box-shadow: 0 26px 70px rgba(0,0,0,0.9);
-    }
-
-    .overlay-card img {
-      max-width: 260px;
-      image-rendering: pixelated;
-      border-radius: 0.7rem;
-      margin-bottom: 0.8rem;
-    }
-
-    .overlay-title {
-      font-size: 1.4rem;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: #ff5555;
-      margin-bottom: 0.4rem;
-    }
-
-    .overlay-sub {
-      font-size: 0.9rem;
-      margin-bottom: 1.1rem;
-    }
-
-    /* Horiver hears you banner */
-
-    #alertBanner {
+    canvas {
       position: fixed;
-      left: 50%;
-      top: 8%;
-      transform: translateX(-50%);
-      padding: 0.5rem 1rem;
-      border-radius: 999px;
-      border: 1px solid #ff4444;
-      background: rgba(60,0,0,0.92);
-      color: #ffdddd;
-      font-size: 0.82rem;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      text-align: center;
-      display: none;
-      z-index: 35;
-      box-shadow: 0 10px 24px rgba(0,0,0,0.8);
-    }
-
-    @media (max-width: 720px) {
-      .welcome-card {
-        margin: 0 1rem;
-        padding-inline: 1.5rem;
-      }
-
-      .hud {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.4rem;
-      }
-
-      #gameCanvas {
-        height: calc(100% - 72px);
-      }
+      top: 30px;
+      left: 0;
+      width: 100vw;
+      height: calc(100vh - 30px);
+      display: block;
+      background: #000;
     }
   </style>
 </head>
 <body>
+  <div id="hud">TEST: Move the white square with WASD. If you can see it, JS works.</div>
+  <canvas id="game"></canvas>
 
-<!-- WELCOME POPUP -->
-<div id="welcomeOverlay">
-  <div class="welcome-card">
-    <img src="images/horiver lair.png" alt="Communism Party">
-    <h1>WELCOME TO COMMUNISM PARTY</h1>
-    <button class="btn-primary" id="welcomeEnterBtn">Enter Headquarters</button>
-  </div>
-</div>
-
-<!-- SIMPLE LEVEL SELECT -->
-<div id="mapScreen" class="screen active">
-  <div class="map-header">
-    <span>COMMUNIST OVERWORLD – LEVEL SELECT</span>
-    <span>Only Level 1 is unlocked</span>
-  </div>
-  <div class="map-main">
-    <div class="map-card">
-      <img src="images/horiver lair.png" alt="Horiver's Lair">
-      <h2>LEVEL 1 – HÓRIVER'S LAIR</h2>
-      <p>Enter the castle drowned in vape smoke. Find the vape, destroy it, and escape Hóriver.</p>
-      <button class="btn-primary" id="startLevelBtn">Start Level</button>
-    </div>
-  </div>
-  <div class="map-footer">
-    More cursed regions of the map will unlock in future levels.
-  </div>
-</div>
-
-<!-- GAME SCREEN -->
-<div id="gameScreen" class="screen">
-  <div class="hud">
-    <div class="mission" id="missionText">MISSION: FIND AND DESTROY OLIVER'S VAPE</div>
-    <div class="hud-right">
-      <div>Controls: WASD to move, Shift to sprint, closets = safe</div>
-      <div class="sprint-bar">
-        <div class="sprint-bar-inner" id="sprintBarInner"></div>
-      </div>
-    </div>
-  </div>
-  <canvas id="gameCanvas" width="960" height="540"></canvas>
-</div>
-
-<div id="alertBanner">HÓRIVER HEARS YOU</div>
-
-<!-- DEATH OVERLAY -->
-<div id="deathOverlay" class="overlay">
-  <div class="overlay-card">
-    <img src="images/horiver jumpscare.png" alt="Jumpscare">
-    <div class="overlay-title">WASTED</div>
-    <div class="overlay-sub">Hóriver caught you in the fog. The vape remains undefeated.</div>
-    <button class="btn-primary" id="retryLevelBtn" style="margin-right:0.75rem;">Retry Level</button>
-    <button class="btn-secondary" id="backToMapBtn">Back to Map</button>
-  </div>
-</div>
-
-<!-- WIN OVERLAY -->
-<div id="winOverlay" class="overlay">
-  <div class="overlay-card">
-    <img src="images/bhoriver token.png" alt="Token reward">
-    <div class="overlay-title" style="color:#ffdd88;">MISSION COMPLETE</div>
-    <div class="overlay-sub">
-      The cursed vape is flushed. Hóriver fades in anguish and you claim your token.
-    </div>
-    <button class="btn-primary" id="winBackToMapBtn">Return to Overworld</button>
-  </div>
-</div>
-
-<script>
-  // ---------- Audio helpers ----------
-  const sounds = {
-    menuClick: new Audio("sounds/menu click.mp3"),
-    start: new Audio("sounds/start sound.mp3"),
-    bgm: new Audio("sounds/backg music.mp3"),
-    pickup: new Audio("sounds/item pickup.mp3"),
-    door: new Audio("sounds/door open.mp3"),
-    jumpscare: new Audio("sounds/jumpscare.mp3"),
-    flush: new Audio("sounds/toilet flush.mp3"),
-    win: new Audio("sounds/win.mp3")
-  };
-  sounds.bgm.loop = true;
-  sounds.bgm.volume = 0.3;
-
-  function safePlay(a) {
-    a.currentTime = 0;
-    a.play().catch(() => {});
-  }
-
-  // ---------- Screen management ----------
-  const welcomeOverlay = document.getElementById("welcomeOverlay");
-  const mapScreen = document.getElementById("mapScreen");
-  const gameScreen = document.getElementById("gameScreen");
-  const deathOverlay = document.getElementById("deathOverlay");
-  const winOverlay = document.getElementById("winOverlay");
-  const alertBanner = document.getElementById("alertBanner");
-
-  function showScreen(name) {
-    mapScreen.classList.remove("active");
-    gameScreen.classList.remove("active");
-    if (name === "map") mapScreen.classList.add("active");
-    if (name === "game") gameScreen.classList.add("active");
-  }
-
-  // ---------- Game data ----------
-  const canvas = document.getElementById("gameCanvas");
-  const ctx = canvas.getContext("2d");
-  const TILE = 40;
-  const MAP_W = 20;
-  const MAP_H = 13;
-
-  // 0 wall, 1 floor, 2 closet, 3 throne, 4 chest, 5 bathroom
-  const map = [
-    "00000000000000000000",
-    "01111111111111111110",
-    "01100000001000000110",
-    "01100000001000000110",
-    "01111111131111111110",
-    "01100000001000000110",
-    "01100002221002220110",
-    "01100000001000000110",
-    "01111111111111111110",
-    "01100000001000040110",
-    "01100000001000000110",
-    "01111111151111111110",
-    "00000000000000000000"
-  ];
-
-  function isWalkable(x, y) {
-    if (x<0 || y<0 || x>=MAP_W || y>=MAP_H) return false;
-    const c = map[y][x];
-    return c === "1" || c === "2" || c === "3" || c === "4" || c === "5";
-  }
-
-  const startPos = {x: 3.5, y: 6.5};
-  const thronePos = {x: 9.5, y: 4.5};
-  const keyPos = {x: 3.5, y: 9.5};
-  const chestPos = {x: 15.5, y: 9.5};
-  const bathroomPos = {x: 9.5, y: 11.5};
-  const flashlightPos = {x: thronePos.x, y: thronePos.y - 0.5};
-
-  const keyRoom = {x1: 2, y1: 9, x2: 5, y2: 10};
-
-  const playerSprite = new Image();
-  playerSprite.src = "images/player.png";
-  const horiverSprite = new Image();
-  horiverSprite.src = "images/horiver character.png";
-  const flashSprite = new Image();
-  flashSprite.src = "images/pixel-flashlight.png";
-  const keySprite = new Image();
-  keySprite.src = "images/key pixel.png";
-  const vapeSprite = new Image();
-  vapeSprite.src = "images/vape pixel.png";
-
-  const sprintBarInner = document.getElementById("sprintBarInner");
-  const missionText = document.getElementById("missionText");
-
-  const keys = {w:false,a:false,s:false,d:false,shift:false};
-
-  window.addEventListener("keydown", e=>{
-    if (e.key==="w"||e.key==="W") keys.w=true;
-    if (e.key==="a"||e.key==="A") keys.a=true;
-    if (e.key==="s"||e.key==="S") keys.s=true;
-    if (e.key==="d"||e.key==="D") keys.d=true;
-    if (e.key==="Shift") keys.shift=true;
-  });
-  window.addEventListener("keyup", e=>{
-    if (e.key==="w"||e.key==="W") keys.w=false;
-    if (e.key==="a"||e.key==="A") keys.a=false;
-    if (e.key==="s"||e.key==="S") keys.s=false;
-    if (e.key==="d"||e.key==="D") keys.d=false;
-    if (e.key==="Shift") keys.shift=false;
-  });
-
-  let player, horiver, haveFlashlight, haveKey, haveVape, vapeDestroyed;
-  let inKeyRoom, keyTriggered, sprintValue, running, gameRunning, lastTime, deathPending, winPending;
-
-  function resetLevel() {
-    player = {x:startPos.x, y:startPos.y, speed:2.2, sprint:3.8};
-    horiver = {x:thronePos.x, y:thronePos.y+1, speed:2.2, active:false, fading:false};
-    haveFlashlight = false;
-    haveKey = false;
-    haveVape = false;
-    vapeDestroyed = false;
-    inKeyRoom = false;
-    keyTriggered = false;
-    sprintValue = 1;
-    running = false;
-    gameRunning = true;
-    lastTime = performance.now();
-    deathPending = false;
-    winPending = false;
-    missionText.textContent = "MISSION: FIND AND DESTROY OLIVER'S VAPE";
-    hideAlert();
-  }
-
-  function showAlert() {
-    alertBanner.style.display = "block";
-    setTimeout(()=>alertBanner.style.display="none", 2000);
-  }
-
-  function hideAlert() {
-    alertBanner.style.display = "none";
-  }
-
-  function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
-
-  function update(dt) {
-    if (!gameRunning) return;
-
-    // movement
-    let dx=0, dy=0;
-    if (keys.w) dy-=1;
-    if (keys.s) dy+=1;
-    if (keys.a) dx-=1;
-    if (keys.d) dx+=1;
-    const len = Math.hypot(dx,dy);
-    if (len>0){dx/=len;dy/=len;}
-
-    running = keys.shift && sprintValue>0.05 && (dx||dy);
-    let speed = player.speed;
-    if (running) {
-      speed = player.sprint;
-      sprintValue -= dt/3;
-    } else {
-      sprintValue += dt/5;
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight - 30;
     }
-    sprintValue = Math.max(0, Math.min(1, sprintValue));
-    sprintBarInner.style.transform = `scaleX(${sprintValue})`;
+    window.addEventListener("resize", resize);
+    resize();
 
-    const step = speed*dt;
+    const TILE = 40;
+    const MAP_W = 15;
+    const MAP_H = 10;
 
-    function tryMove(nx,ny){
-      const gx = Math.floor(nx);
-      const gy = Math.floor(ny);
-      if (isWalkable(gx, gy)) {
-        player.x = nx;
-        player.y = ny;
-      }
+    // 0 = wall, 1 = floor
+    const map = [
+      "000000000000000",
+      "011111111111110",
+      "011000001000010",
+      "011000001000010",
+      "011111111111110",
+      "011000000000010",
+      "011000011100010",
+      "011000010000010",
+      "011111111111110",
+      "000000000000000"
+    ];
+
+    function isFloor(x,y){
+      if (x<0||y<0||x>=MAP_W||y>=MAP_H) return false;
+      return map[y][x] === "1";
     }
 
-    tryMove(player.x + dx*step, player.y);
-    tryMove(player.x, player.y + dy*step);
+    const player = { x: 3.5, y: 5.5, speed: 4 };
+    const keys = {w:false,a:false,s:false,d:false};
 
-    // key room trigger
-    const inside =
-      player.x>=keyRoom.x1 && player.x<=keyRoom.x2 &&
-      player.y>=keyRoom.y1 && player.y<=keyRoom.y2;
+    window.addEventListener("keydown", e=>{
+      if (e.key==="w"||e.key==="W") keys.w=true;
+      if (e.key==="a"||e.key==="A") keys.a=true;
+      if (e.key==="s"||e.key==="S") keys.s=true;
+      if (e.key==="d"||e.key==="D") keys.d=true;
+    });
+    window.addEventListener("keyup", e=>{
+      if (e.key==="w"||e.key==="W") keys.w=false;
+      if (e.key==="a"||e.key==="A") keys.a=false;
+      if (e.key==="s"||e.key==="S") keys.s=false;
+      if (e.key==="d"||e.key==="D") keys.d=false;
+    });
 
-    if (!inKeyRoom && inside) inKeyRoom = true;
-    if (inKeyRoom && !inside) {
-      inKeyRoom = false;
-      if (haveKey && !keyTriggered) {
-        keyTriggered = true;
-        horiver.active = true;
-        safePlay(sounds.jumpscare);
-        showAlert();
-      }
-    }
+    let last = performance.now();
 
-    // item pickups
-    if (!haveFlashlight && dist(player, flashlightPos)<0.7) {
-      haveFlashlight = true;
-      safePlay(sounds.pickup);
-      missionText.textContent = "MISSION: FIND THE KEY TO HÓRIVER'S CHEST";
-    }
+    function loop(time){
+      const dt = (time-last)/1000;
+      last = time;
 
-    if (!haveKey && dist(player, keyPos)<0.7) {
-      haveKey = true;
-      safePlay(sounds.pickup);
-      missionText.textContent = "MISSION: FIND THE CHEST CONTAINING THE VAPE";
-    }
+      // movement
+      let dx=0, dy=0;
+      if (keys.w) dy-=1;
+      if (keys.s) dy+=1;
+      if (keys.a) dx-=1;
+      if (keys.d) dx+=1;
+      const len = Math.hypot(dx,dy);
+      if (len>0){dx/=len;dy/=len;}
 
-    if (!haveVape && haveKey && dist(player, chestPos)<0.9) {
-      haveVape = true;
-      safePlay(sounds.pickup);
-      missionText.textContent = "MISSION: FIND THE BATHROOM AND DESTROY THE VAPE";
-    }
+      const step = player.speed*dt;
+      const nx = player.x + dx*step;
+      const ny = player.y + dy*step;
 
-    if (!vapeDestroyed && haveVape && dist(player, bathroomPos)<0.9) {
-      vapeDestroyed = true;
-      haveVape = false;
-      horiver.fading = true;
-      horiver.active = false;
-      safePlay(sounds.flush);
-      missionText.textContent = "MISSION: RETURN TO THE THRONE TO CLAIM YOUR TOKEN";
-    }
+      if (isFloor(Math.floor(nx), Math.floor(player.y))) player.x = nx;
+      if (isFloor(Math.floor(player.x), Math.floor(ny))) player.y = ny;
 
-    // Horiver AI
-    if (horiver.active && !horiver.fading) {
-      const dxh = player.x - horiver.x;
-      const dyh = player.y - horiver.y;
-      const d = Math.hypot(dxh,dyh);
-      if (d>0.05){
-        const vx = dxh/d;
-        const vy = dyh/d;
-        const hstep = horiver.speed*dt;
-        const nx = horiver.x + vx*hstep;
-        const ny = horiver.y + vy*hstep;
-        if (isWalkable(Math.floor(nx),Math.floor(ny))) {
-          horiver.x = nx;
-          horiver.y = ny;
+      // draw
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      const camX = player.x*TILE - canvas.width/2;
+      const camY = player.y*TILE - canvas.height/2;
+
+      for (let y=0;y<MAP_H;y++){
+        for (let x=0;x<MAP_W;x++){
+          const sx = x*TILE - camX;
+          const sy = y*TILE - camY;
+          if (map[y][x]==="0") {
+            ctx.fillStyle="#22080c";
+          } else {
+            ctx.fillStyle="#4a1517";
+          }
+          ctx.fillRect(sx,sy,TILE,TILE);
         }
       }
+
+      // player
+      ctx.fillStyle="#ffffff";
+      ctx.fillRect(player.x*TILE - camX - 10, player.y*TILE - camY - 10, 20, 20);
+
+      requestAnimationFrame(loop);
     }
 
-    // death (closets safe)
-    const cell = map[Math.floor(player.y)][Math.floor(player.x)];
-    const hiding = cell === "2";
-    const dPH = dist(player, horiver);
-    if (horiver.active && !hiding && dPH<0.8 && !deathPending && !winPending) {
-      deathPending = true;
-      gameRunning = false;
-      safePlay(sounds.jumpscare);
-      setTimeout(()=>deathOverlay.classList.add("active"), 100);
-    }
-
-    // win
-    if (vapeDestroyed && dist(player, thronePos)<0.9 && !winPending) {
-      winPending = true;
-      gameRunning = false;
-      safePlay(sounds.win);
-      setTimeout(()=>winOverlay.classList.add("active"), 150);
-    }
-  }
-
-  function draw() {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    const camX = player.x*TILE - canvas.width/2;
-    const camY = player.y*TILE - canvas.height/2;
-
-    // map
-    for (let y=0;y<MAP_H;y++){
-      for (let x=0;x<MAP_W;x++){
-        const c = map[y][x];
-        const sx = x*TILE - camX;
-        const sy = y*TILE - camY;
-        if (c==="0") {
-          ctx.fillStyle="#1a1014";
-        } else {
-          ctx.fillStyle="#2b1516"; // floor
-        }
-        ctx.fillRect(sx, sy, TILE, TILE);
-
-        if (c==="3") { // throne
-          ctx.fillStyle="#553322";
-          ctx.fillRect(sx+4, sy+4, TILE-8, TILE-8);
-        } else if (c==="2") { // closet
-          ctx.fillStyle="#1e3a3a";
-          ctx.fillRect(sx+4, sy+4, TILE-8, TILE-8);
-        } else if (c==="4") { // chest
-          ctx.fillStyle="#5a3a14";
-          ctx.fillRect(sx+6, sy+10, TILE-12, TILE-14);
-        } else if (c==="5") { // bathroom
-          ctx.fillStyle="#C7D6E6";
-          ctx.fillRect(sx, sy, TILE, TILE);
-        }
-      }
-    }
-
-    // items
-    function drawSprite(img, pos){
-      const sx = pos.x*TILE - camX - TILE/2;
-      const sy = pos.y*TILE - camY - TILE/2;
-      ctx.drawImage(img, sx, sy, TILE, TILE);
-    }
-
-    if (!haveFlashlight) drawSprite(flashSprite, flashlightPos);
-    if (!haveKey) drawSprite(keySprite, keyPos);
-    if (haveKey && !haveVape && !vapeDestroyed) drawSprite(vapeSprite, chestPos);
-
-    // bathroom marker
-    ctx.fillStyle="#23324a";
-    ctx.fillRect(bathroomPos.x*TILE - camX - 6, bathroomPos.y*TILE - camY - 14, 12, 16);
-
-    // player
-    drawSprite(playerSprite, player);
-
-    // horiver
-    if (horiver.active || horiver.fading) drawSprite(horiverSprite, horiver);
-
-    // fog
-    const fog = ctx.createRadialGradient(
-      canvas.width/2, canvas.height/2, 40,
-      canvas.width/2, canvas.height/2, 260
-    );
-    fog.addColorStop(0, "rgba(0,0,0,0)");
-    fog.addColorStop(0.55, "rgba(255,255,255,0.03)");
-    fog.addColorStop(1, "rgba(255,255,255,0.88)");
-    ctx.fillStyle = fog;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
-
-  function loop(ts){
-    if (!gameRunning) return;
-    const dt = (ts-lastTime)/1000;
-    lastTime = ts;
-    update(dt);
-    draw();
     requestAnimationFrame(loop);
-  }
-
-  function startLevel(){
-    resetLevel();
-    showScreen("game");
-    safePlay(sounds.start);
-    safePlay(sounds.bgm);
-    requestAnimationFrame(loop);
-  }
-
-  function backToMap(){
-    gameRunning=false;
-    sounds.bgm.pause();
-    showScreen("map");
-  }
-
-  // ---------- UI events ----------
-  document.getElementById("welcomeEnterBtn").addEventListener("click", ()=>{
-    welcomeOverlay.style.display="none";
-    safePlay(sounds.menuClick);
-  });
-
-  document.getElementById("startLevelBtn").addEventListener("click", ()=>{
-    safePlay(sounds.menuClick);
-    startLevel();
-  });
-
-  document.getElementById("retryLevelBtn").addEventListener("click", ()=>{
-    deathOverlay.classList.remove("active");
-    safePlay(sounds.menuClick);
-    startLevel();
-  });
-
-  document.getElementById("backToMapBtn").addEventListener("click", ()=>{
-    deathOverlay.classList.remove("active");
-    safePlay(sounds.menuClick);
-    backToMap();
-  });
-
-  document.getElementById("winBackToMapBtn").addEventListener("click", ()=>{
-    winOverlay.classList.remove("active");
-    safePlay(sounds.menuClick);
-    backToMap();
-  });
-</script>
+  </script>
 </body>
 </html>
