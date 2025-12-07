@@ -240,7 +240,7 @@
       a.play().catch(() => {});
     }
 
-    // ===== Canvas & world setup =====
+    // ===== Canvas & world =====
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
 
@@ -277,50 +277,64 @@
       }
     }
 
+    // *** DETERMINISTIC CASTLE LAYOUT ***
     function generateCastle() {
-      carveRect(4, 4, WORLD_W - 5, 4);
-      carveRect(4, WORLD_H - 5, WORLD_W - 5, WORLD_H - 5);
-      carveRect(4, 4, 4, WORLD_H - 5);
-      carveRect(WORLD_W - 5, 4, WORLD_W - 5, WORLD_H - 5);
+      // big central rectangle
+      carveRect(8, 8, WORLD_W - 9, WORLD_H - 9);
 
-      carveRect(10, WORLD_H / 2 - 1, WORLD_W - 11, WORLD_H / 2 + 1);
-      carveRect(WORLD_W / 2 - 1, 10, WORLD_W / 2 + 1, WORLD_H - 11);
-
-      for (let i = 0; i < 10; i++) {
-        const rx = 8 + i * 8;
-        carveRect(rx, 15, rx + 4, 20);
-        carveRect(rx, WORLD_H - 21, rx + 4, WORLD_H - 16);
+      // outer ring walls around that rectangle
+      for (let x = 6; x <= WORLD_W - 7; x++) {
+        world[6][x] = T_WALL;
+        world[WORLD_H - 7][x] = T_WALL;
       }
-      for (let i = 0; i < 10; i++) {
-        const ry = 8 + i * 8;
-        carveRect(15, ry, 20, ry + 4);
-        carveRect(WORLD_W - 21, ry, WORLD_W - 16, ry + 4);
+      for (let y = 6; y <= WORLD_H - 7; y++) {
+        world[y][6] = T_WALL;
+        world[y][WORLD_W - 7] = T_WALL;
       }
 
-      for (let i = 0; i < 40; i++) {
-        const x = 6 + Math.floor(Math.random() * (WORLD_W - 12));
-        const y = 6 + Math.floor(Math.random() * (WORLD_H - 12));
-        if (Math.random() < 0.5) {
-          carveRect(x, y, x + 7, y + 1);
-        } else {
-          carveRect(x, y, x + 1, y + 7);
-        }
+      // long main north-south hallway
+      carveRect(WORLD_W / 2 - 2, 8, WORLD_W / 2 + 2, WORLD_H - 9);
+
+      // throne room at top
+      carveRect(WORLD_W / 2 - 6, 8, WORLD_W / 2 + 6, 18);
+      world[12][Math.floor(WORLD_W / 2)] = T_THRONE;
+
+      // big entrance hall at bottom (start area)
+      carveRect(10, WORLD_H - 20, 40, WORLD_H - 10);
+      // corridor from entrance hall to main hallway
+      carveRect(24, WORLD_H - 20, 24, WORLD_H - 30);
+      carveRect(24, WORLD_H - 30, WORLD_W / 2 + 2, WORLD_H - 30);
+
+      // side rooms along hallway
+      for (let i = 0; i < 6; i++) {
+        const yTop = 22 + i * 10;
+        carveRect(WORLD_W / 2 - 18, yTop, WORLD_W / 2 - 8, yTop + 6);
+        carveRect(WORLD_W / 2 + 8, yTop, WORLD_W / 2 + 18, yTop + 6);
       }
 
-      world[WORLD_H - 8][10] = T_START;
-      world[WORLD_H - 12][16] = T_FLASHLIGHT;
-      world[10][WORLD_W - 12] = T_THRONE;
-      world[18][18] = T_KEY;
-      world[WORLD_H - 18][WORLD_W - 20] = T_CHEST;
-      world[8][Math.floor(WORLD_W / 2)] = T_BATHROOM;
+      // bathroom area near top-right
+      carveRect(WORLD_W - 30, 16, WORLD_W - 14, 30);
+      world[22][WORLD_W - 22] = T_BATHROOM;
 
-      const closetPositions = [
-        [WORLD_W / 2 - 4, WORLD_H / 2 - 6],
-        [WORLD_W / 2 + 5, WORLD_H / 2 + 3],
-        [14, WORLD_H / 2 + 4],
-        [WORLD_W - 16, WORLD_H / 2 - 3]
+      // chest room near middle-right
+      carveRect(WORLD_W - 30, WORLD_H / 2 - 6, WORLD_W - 14, WORLD_H / 2 + 6);
+      world[Math.floor(WORLD_H / 2)][WORLD_W - 22] = T_CHEST;
+
+      // flashlight & key in left side rooms
+      world[WORLD_H - 16][14] = T_FLASHLIGHT; // flashlight bottom-left
+      world[36][14] = T_KEY;                  // key mid-left
+
+      // start tile in entrance hall
+      world[WORLD_H - 14][16] = T_START;
+
+      // a few closets (safe rooms)
+      const closetTiles = [
+        [WORLD_W / 2 - 16, WORLD_H / 2],
+        [WORLD_W / 2 + 16, WORLD_H / 2 - 4],
+        [18, WORLD_H - 18],
+        [WORLD_W - 20, 20]
       ];
-      closetPositions.forEach(([x, y]) => {
+      closetTiles.forEach(([x, y]) => {
         world[Math.floor(y)][Math.floor(x)] = T_CLOSET;
       });
     }
@@ -362,7 +376,7 @@
     };
 
     const sounds = {
-      bgm: makeSound("backg-music.mp3", true, 0.4),
+      bgm: makeSound("backg-music.mp3", true, 0.45),
       start: makeSound("start-sound.mp3"),
       menuClick: makeSound("menu-click.mp3"),
       pickup: makeSound("item-pickup.mp3"),
@@ -395,12 +409,12 @@
     let win = false;
 
     function resetGame() {
-      const startTile = findTile(T_START) || { x: 10, y: WORLD_H - 8 };
+      const startTile = findTile(T_START) || { x: 16, y: WORLD_H - 14 };
       player.x = (startTile.x + 0.5) * TILE;
       player.y = (startTile.y + 0.5) * TILE;
       player.vx = player.vy = 0;
 
-      const throne = findTile(T_THRONE) || { x: WORLD_W - 12, y: 10 };
+      const throne = findTile(T_THRONE) || { x: WORLD_W / 2, y: 12 };
       horiver.x = (throne.x + 0.5) * TILE;
       horiver.y = (throne.y + 0.5) * TILE;
       horiver.vx = horiver.vy = 0;
@@ -441,14 +455,9 @@
     function showAlert() {
       const el = document.getElementById("alertBanner");
       el.style.display = "block";
-      setTimeout(() => {
-        el.style.display = "none";
-      }, 2000);
+      setTimeout(() => { el.style.display = "none"; }, 2000);
     }
-
-    function hideAlert() {
-      document.getElementById("alertBanner").style.display = "none";
-    }
+    function hideAlert() { document.getElementById("alertBanner").style.display = "none"; }
 
     function awakenHoriver() {
       if (!horiver.active && horiver.alive) {
@@ -527,24 +536,17 @@
 
       const txNewX = Math.floor(nextX / TILE);
       const tyCur = Math.floor(ent.y / TILE);
-      if (isWalkable(txNewX, tyCur)) {
-        ent.x = nextX;
-      } else {
-        ent.vx = 0;
-      }
+      if (isWalkable(txNewX, tyCur)) ent.x = nextX;
+      else ent.vx = 0;
 
       const txCur = Math.floor(ent.x / TILE);
       const tyNewY = Math.floor(nextY / TILE);
-      if (isWalkable(txCur, tyNewY)) {
-        ent.y = nextY;
-      } else {
-        ent.vy = 0;
-      }
+      if (isWalkable(txCur, tyNewY)) ent.y = nextY;
+      else ent.vy = 0;
     }
 
     function updateMovement(dt) {
-      let dx = 0;
-      let dy = 0;
+      let dx = 0, dy = 0;
       if (keys.w) dy -= 1;
       if (keys.s) dy += 1;
       if (keys.a) dx -= 1;
@@ -552,8 +554,7 @@
 
       if (dx !== 0 || dy !== 0) {
         const len = Math.hypot(dx, dy);
-        dx /= len;
-        dy /= len;
+        dx /= len; dy /= len;
         player.vx = dx * playerSpeed;
         player.vy = dy * playerSpeed;
         lastDir.x = dx;
@@ -587,7 +588,6 @@
       const pty = Math.floor(player.y / TILE);
       const htx = Math.floor(horiver.x / TILE);
       const hty = Math.floor(horiver.y / TILE);
-
       if (ptx === htx && pty === hty && !isCloset(ptx, pty) && !vapeDestroyed) {
         killPlayer();
       }
@@ -596,13 +596,10 @@
     function getCamera() {
       let camX = player.x - canvas.width / 2;
       let camY = player.y - canvas.height / 2;
-
       const maxX = WORLD_W * TILE - canvas.width;
       const maxY = WORLD_H * TILE - canvas.height;
-
       camX = Math.max(0, Math.min(camX, maxX));
       camY = Math.max(0, Math.min(camY, maxY));
-
       return { x: camX, y: camY };
     }
 
@@ -610,8 +607,7 @@
       if (imgTiles.complete && imgTiles.naturalWidth) {
         ctx.drawImage(imgTiles, sx, sy, SHEET_TILE, SHEET_TILE, dx, dy, TILE, TILE);
       } else {
-        if (type === T_WALL) ctx.fillStyle = "#3b1517";
-        else ctx.fillStyle = "#15060a";
+        ctx.fillStyle = type === T_WALL ? "#3b1517" : "#221015";
         ctx.fillRect(dx, dy, TILE, TILE);
       }
     }
@@ -642,8 +638,8 @@
           }
 
           if (t === T_THRONE) {
-            ctx.fillStyle = "#553322";
-            ctx.fillRect(sx + 6, sy + 6, TILE - 12, TILE - 12);
+            ctx.fillStyle = "#7a4b2a";
+            ctx.fillRect(sx + 4, sy + 4, TILE - 8, TILE - 8);
           }
         }
       }
@@ -667,35 +663,36 @@
       for (let ty = startTY; ty <= endTY; ty++) {
         for (let tx = startTX; tx <= endTX; tx++) {
           const t = tileAt(tx, ty);
-          if (t === T_FLASHLIGHT && !haveFlashlight) drawSprite(imgFlashlight, tx, ty, 0.85);
+          if (t === T_FLASHLIGHT && !haveFlashlight) drawSprite(imgFlashlight, tx, ty, 0.9);
           if (t === T_KEY && !haveKey) drawSprite(imgKey, tx, ty, 0.9);
-          if (t === T_CHEST && haveKey && !vapeDestroyed && !haveVape) drawSprite(imgVape, tx, ty, 0.8);
+          if (t === T_CHEST && haveKey && !vapeDestroyed && !haveVape) drawSprite(imgVape, tx, ty, 0.9);
         }
       }
 
-      drawSprite(imgPlayer, player.x / TILE, player.y / TILE, 0.9);
+      drawSprite(imgPlayer, player.x / TILE, player.y / TILE, 0.95);
       if (horiver.alive && horiver.active) {
-        drawSprite(imgHoriver, horiver.x / TILE, horiver.y / TILE, 0.9);
+        drawSprite(imgHoriver, horiver.x / TILE, horiver.y / TILE, 0.95);
       }
 
-      applyFog(cam, player.x - cam.x, player.y - cam.y);
+      applyFog(player.x - cam.x, player.y - cam.y);
     }
 
-    function applyFog(cam, pScreenX, pScreenY) {
+    // *** Fog tuned so you can SEE stuff ***
+    function applyFog(pScreenX, pScreenY) {
       ctx.save();
-      ctx.fillStyle = "rgba(0,0,0,0.96)";
+      ctx.fillStyle = "rgba(0,0,0,0.9)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.globalCompositeOperation = "destination-out";
 
-      const baseRadius = haveFlashlight ? 90 : 60;
+      const baseRadius = haveFlashlight ? 160 : 130;       // larger than before
       ctx.beginPath();
       ctx.arc(pScreenX, pScreenY, baseRadius, 0, Math.PI * 2);
       ctx.fill();
 
       const dirLen = Math.hypot(lastDir.x, lastDir.y) || 1;
-      const fx = pScreenX + (lastDir.x / dirLen) * 160;
-      const fy = pScreenY + (lastDir.y / dirLen) * 160;
-      const flashlightRadius = haveFlashlight ? 160 : 90;
+      const fx = pScreenX + (lastDir.x / dirLen) * 220;
+      const fy = pScreenY + (lastDir.y / dirLen) * 220;
+      const flashlightRadius = haveFlashlight ? 260 : 190;
 
       ctx.beginPath();
       ctx.arc(fx, fy, flashlightRadius, 0, Math.PI * 2);
@@ -764,13 +761,12 @@
       typingTimer = setInterval(typeNextChar, 35);
     }
 
-    startTyping(); // start first message immediately
+    startTyping();
 
     welcomeCard.addEventListener("click", () => {
-      startMusicOnce(); // start bgm on first interaction
+      startMusicOnce();
 
       if (!typingDone) {
-        // fast-finish the current message
         const msg = welcomeMessages[welcomeStep];
         clearInterval(typingTimer);
         typingTimer = null;
@@ -785,7 +781,6 @@
       if (welcomeStep < welcomeMessages.length) {
         startTyping();
       } else {
-        // show final Horiver Lair screen
         welcomeTextWrapper.style.display = "none";
         welcomeFinal.style.display = "block";
       }
