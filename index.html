@@ -1,8 +1,8 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Communism Party – Hóriver's Lair (Prototype)</title>
+  <title>Communism Party – Hóriver's Lair (Final Prototype)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     * {
@@ -173,15 +173,16 @@
   </style>
 </head>
 <body>
-  <h1>HÓRIVER’S LAIR – LEVEL 1 (PROTOTYPE)</h1>
+  <h1>HÓRIVER’S LAIR – LEVEL 1 (FINAL PROTOTYPE)</h1>
   <div id="subtitle">
-    Mission: find the flashlight, key, vape and bathroom in Hóriver’s cursed mansion–castle
+    Mission: find the flashlight, key, vape and bathroom in Hóriver’s cursed mega-mansion–castle
   </div>
 
   <div id="game-wrapper">
     <canvas id="game" width="800" height="600"></canvas>
     <div id="controls">
-      Move with <b>W A S D</b>. <b>R</b> = interact (pick up, flush, claim). <b>F</b> = hide in closets. Closets only protect you while hiding. Hóriver kills on contact.
+      Move with <b>W A S D</b>. <b>R</b> = interact (pick up, flush, claim). <b>F</b> = hide in closets.
+      Aim flashlight with your mouse. Hóriver kills on contact.
     </div>
     <div id="interactionPrompt"></div>
   </div>
@@ -245,8 +246,18 @@
     }
 
     function safePlay(a) {
-      a.currentTime = 0;
-      a.play().catch(() => {});
+      try {
+        a.currentTime = 0;
+        a.play().catch(() => {});
+      } catch (e) {}
+    }
+
+    // Simple deterministic random from coords
+    function coordRand(x, y, seed = 1337) {
+      let n = x * 374761393 + y * 668265263 + seed * 1442695040888963407;
+      n = (n ^ (n >> 13)) * 1274126177;
+      n = (n ^ (n >> 16));
+      return (n >>> 0) / 4294967295;
     }
 
     // ===== Canvas & world =====
@@ -254,12 +265,13 @@
     const ctx = canvas.getContext("2d");
 
     const TILE = 32;
-    const WORLD_W = 24;
-    const WORLD_H = 24;
+    const WORLD_W = 500;
+    const WORLD_H = 500;
 
-    const playerSpeed = 120;
+    const playerSpeed = 140;
     const horiverBaseSpeed = 90;
 
+    // tile types
     const T_WALL = 1;
     const T_FLOOR = 0;
     const T_CLOSET = 2;
@@ -270,71 +282,158 @@
     const T_FLASHLIGHT = 7;
     const T_START = 8;
 
+    // region types for floor rendering
+    const REGION_STONE = 0;
+    const REGION_HARDWOOD = 1;
+    const REGION_CARPET_LEFT = 2;
+    const REGION_CARPET_MID = 3;
+    const REGION_CARPET_RIGHT = 4;
+
     const world = [];
+    const regionType = [];
     for (let y = 0; y < WORLD_H; y++) {
       const row = new Array(WORLD_W).fill(T_WALL);
+      const rrow = new Array(WORLD_W).fill(REGION_STONE);
       world.push(row);
+      regionType.push(rrow);
     }
 
-    function carveRect(x0, y0, x1, y1, type = T_FLOOR) {
+    function inBounds(x, y) {
+      return x > 0 && y > 0 && x < WORLD_W - 1 && y < WORLD_H - 1;
+    }
+
+    function carveRect(x0, y0, x1, y1, tileType = T_FLOOR, region = REGION_STONE) {
       for (let y = y0; y <= y1; y++) {
         for (let x = x0; x <= x1; x++) {
-          if (x > 0 && y > 0 && x < WORLD_W - 1 && y < WORLD_H - 1) {
-            world[y][x] = type;
+          if (inBounds(x, y)) {
+            world[y][x] = tileType;
+            regionType[y][x] = region;
           }
         }
       }
     }
 
-    // ===== Small prototype layout (castle + mansion) =====
-    function generatePrototypeMap() {
-      // central area
-      carveRect(2, 2, WORLD_W - 3, WORLD_H - 3);
+    let bedroomTiles = [];
+    let kitchenTiles = [];
+    let sideRoomTiles = [];
+    let hallwayTiles = [];
+    let bathroomTiles = [];
+    let patrolPoints = [];
 
-      // entrance hall (bottom)
-      carveRect(4, WORLD_H - 6, 10, WORLD_H - 3);
-      world[WORLD_H - 5][5] = T_START;
-
-      // corridor up from entrance
-      carveRect(6, WORLD_H - 7, 6, 13);
-
-      // horizontal corridor to center
-      carveRect(6, 13, 16, 13);
-
-      // main central hall
-      carveRect(10, 6, 18, 16);
-
-      // throne room (top center)
-      carveRect(10, 3, 18, 6);
-      world[4][14] = T_THRONE;
-
-      // bedroom (left of hall)
-      carveRect(3, 6, 9, 11);
-
-      // dining room (right of hall)
-      carveRect(19, 6, 22, 12);
-
-      // bathroom (top-right)
-      carveRect(19, 3, 22, 5);
-      world[4][20] = T_BATHROOM;
-
-      // chest room (bottom-right of hall)
-      carveRect(19, 14, 22, 18);
-      world[16][20] = T_CHEST;
-
-      // flashlight in bedroom
-      world[8][5] = T_FLASHLIGHT;
-
-      // key in dining room
-      world[8][21] = T_KEY;
-
-      // closets (safe zones)
-      world[WORLD_H - 5][8] = T_CLOSET; // entrance closet
-      world[11][12] = T_CLOSET;        // central closet
-      world[15][19] = T_CLOSET;        // near chest
+    function addRoomRect(list, x0, y0, x1, y1, region = REGION_STONE) {
+      carveRect(x0, y0, x1, y1, T_FLOOR, region);
+      for (let y = y0; y <= y1; y++) {
+        for (let x = x0; x <= x1; x++) {
+          if (inBounds(x, y)) list.push({ x, y });
+        }
+      }
+      const cx = Math.floor((x0 + x1) / 2);
+      const cy = Math.floor((y0 + y1) / 2);
+      if (inBounds(cx, cy)) patrolPoints.push({ x: cx, y: cy });
     }
 
-    generatePrototypeMap();
+    function generateMegaMansion() {
+      const cx = Math.floor(WORLD_W / 2);
+      const hallBottom = WORLD_H - 40;
+      const hallTop = 40;
+      const hallHalfWidth = 3;
+
+      // Main vertical hallway
+      carveRect(cx - hallHalfWidth, hallTop, cx + hallHalfWidth, hallBottom, T_FLOOR, REGION_STONE);
+      for (let y = hallTop; y <= hallBottom; y++) {
+        for (let x = cx - hallHalfWidth; x <= cx + hallHalfWidth; x++) {
+          hallwayTiles.push({ x, y });
+        }
+      }
+      patrolPoints.push({ x: cx, y: hallBottom - 2 });
+      patrolPoints.push({ x: cx, y: Math.floor((hallTop + hallBottom) / 2) });
+
+      // Start
+      const startY = hallBottom - 2;
+      world[startY][cx] = T_START;
+
+      // Throne room
+      const throneY0 = hallTop - 6;
+      const throneY1 = hallTop - 1;
+      const throneX0 = cx - 4;
+      const throneX1 = cx + 4;
+      addRoomRect(sideRoomTiles, throneX0, throneY0, throneX1, throneY1, REGION_STONE);
+      const throneY = throneY0 + 2;
+      world[throneY][cx] = T_THRONE;
+
+      // Green carpet path up to throne
+      for (let y = throneY + 1; y <= throneY + 16 && y < hallBottom; y++) {
+        if (inBounds(cx, y)) regionType[y][cx] = REGION_CARPET_MID;
+        if (inBounds(cx - 1, y)) regionType[y][cx - 1] = REGION_CARPET_LEFT;
+        if (inBounds(cx + 1, y)) regionType[y][cx + 1] = REGION_CARPET_RIGHT;
+      }
+      if (inBounds(cx, throneY)) regionType[throneY][cx] = REGION_CARPET_MID;
+      if (inBounds(cx - 1, throneY)) regionType[throneY][cx - 1] = REGION_CARPET_LEFT;
+      if (inBounds(cx + 1, throneY)) regionType[throneY][cx + 1] = REGION_CARPET_RIGHT;
+
+      // Bedroom clusters (hardwood)
+      const midY1 = hallTop + Math.floor((hallBottom - hallTop) * 0.3);
+      const midY2 = hallTop + Math.floor((hallBottom - hallTop) * 0.6);
+
+      addRoomRect(bedroomTiles, cx - 25, midY1 - 6, cx - 10, midY1 + 4, REGION_HARDWOOD);
+      addRoomRect(bedroomTiles, cx - 40, midY1 - 4, cx - 26, midY1 + 6, REGION_HARDWOOD);
+      addRoomRect(bedroomTiles, cx + 10, midY1 - 6, cx + 25, midY1 + 4, REGION_HARDWOOD);
+      addRoomRect(bedroomTiles, cx + 26, midY1 - 4, cx + 40, midY1 + 6, REGION_HARDWOOD);
+
+      // Kitchen & dining (stone)
+      addRoomRect(kitchenTiles, cx - 18, midY2 - 5, cx - 4, midY2 + 6, REGION_STONE);
+      addRoomRect(kitchenTiles, cx + 4, midY2 - 5, cx + 18, midY2 + 6, REGION_STONE);
+
+      // Bathrooms near top
+      const bathLX0 = cx - 35, bathLX1 = cx - 28;
+      const bathRX0 = cx + 28, bathRX1 = cx + 35;
+      const bathY0 = hallTop + 3, bathY1 = hallTop + 9;
+      addRoomRect(bathroomTiles, bathLX0, bathY0, bathLX1, bathY1, REGION_STONE);
+      addRoomRect(bathroomTiles, bathRX0, bathY0, bathRX1, bathY1, REGION_STONE);
+      for (let i = 0; i < bathroomTiles.length; i++) {
+        const t = bathroomTiles[i];
+        if (i % 3 === 0) world[t.y][t.x] = T_BATHROOM;
+      }
+
+      // Closets along hallway & bedrooms
+      function placeClosetAt(x, y) {
+        if (inBounds(x, y)) world[y][x] = T_CLOSET;
+      }
+      placeClosetAt(cx - 2, hallBottom - 10);
+      placeClosetAt(cx + 2, hallBottom - 25);
+      placeClosetAt(cx - 2, midY1);
+      placeClosetAt(cx + 2, midY2);
+      placeClosetAt(cx - 2, hallTop + 10);
+      placeClosetAt(cx + 2, hallTop + 12);
+
+      for (let i = 0; i < bedroomTiles.length; i += 80) {
+        const t = bedroomTiles[i];
+        if (world[t.y][t.x] === T_FLOOR) world[t.y][t.x] = T_CLOSET;
+      }
+
+      // Chests
+      const chestCandidates = bedroomTiles.concat(sideRoomTiles, kitchenTiles);
+      for (let i = 0; i < chestCandidates.length; i += 70) {
+        const t = chestCandidates[i];
+        if (world[t.y][t.x] === T_FLOOR) world[t.y][t.x] = T_CHEST;
+      }
+
+      // Flashlight & key
+      function pickRandom(list) {
+        return list[Math.floor(Math.random() * list.length)];
+      }
+      if (bedroomTiles.length) {
+        const f = pickRandom(bedroomTiles);
+        world[f.y][f.x] = T_FLASHLIGHT;
+      }
+      const keyList = kitchenTiles.length ? kitchenTiles : sideRoomTiles;
+      if (keyList.length) {
+        const k = pickRandom(keyList);
+        world[k.y][k.x] = T_KEY;
+      }
+    }
+
+    generateMegaMansion();
 
     function tileAt(tx, ty) {
       if (tx < 0 || ty < 0 || tx >= WORLD_W || ty >= WORLD_H) return T_WALL;
@@ -342,7 +441,8 @@
     }
 
     function isWalkable(tx, ty) {
-      return tileAt(tx, ty) !== T_WALL;
+      const t = tileAt(tx, ty);
+      return t !== T_WALL;
     }
 
     function findTile(type) {
@@ -361,9 +461,21 @@
     const imgKey = makeImage("key pixel.png");
     const imgVape = makeImage("vape pixel.png");
     const imgFurniture = makeImage("furniture.png");
+    const imgTileset = makeImage("dungeons pack.png");
+    const imgThrone = makeImage("throne.png");
+    const imgCloset = makeImage("closet.png");
+    const imgBath = makeImage("bath.png");
+    const imgToilet = makeImage("toilet.png");
+    const imgSink = makeImage("sink.png");
+
+    // HUD icons
+    const imgHUDFlashlight = imgFlashlight;
+    const imgHUDKey = imgKey;
+    const imgHUDVape = imgVape;
+    const imgHUDToken = makeImage("bhoriver-token.png");
 
     const sounds = {
-      bgm: makeSound("backg-music.mp3", true, 0.45),
+      bgm: makeSound("backg-sound.mp3", true, 0.45),
       start: makeSound("start-sound.mp3"),
       menuClick: makeSound("menu-click.mp3"),
       pickup: makeSound("item-pickup.mp3"),
@@ -371,7 +483,9 @@
       flush: makeSound("toilet-flush.mp3"),
       jumpscare: makeSound("jumpscare.mp3"),
       win: makeSound("win.mp3"),
-      deathScream: makeSound("horiver-death-scream.mp3")
+      deathScream: makeSound("horiver-death-scream.mp3"),
+      footsteps: makeSound("footsteps.mp3", true, 0.28),
+      heartbeat: makeSound("heartbeat.mp3", true, 0.6)
     };
 
     let musicStarted = false;
@@ -382,12 +496,48 @@
       }
     }
 
+    let footstepsPlaying = false;
+    function playFootsteps() {
+      if (!footstepsPlaying) {
+        sounds.footsteps.play().catch(() => {});
+        footstepsPlaying = true;
+      }
+    }
+    function stopFootsteps() {
+      if (footstepsPlaying) {
+        sounds.footsteps.pause();
+        footstepsPlaying = false;
+      }
+    }
+
+    let heartbeatPlaying = false;
+    function playHeartbeat() {
+      if (!heartbeatPlaying) {
+        sounds.heartbeat.play().catch(() => {});
+        heartbeatPlaying = true;
+      }
+    }
+    function stopHeartbeat() {
+      if (heartbeatPlaying) {
+        sounds.heartbeat.pause();
+        heartbeatPlaying = false;
+      }
+    }
+
     // ===== Game state =====
     let player = { x: 0, y: 0, vx: 0, vy: 0 };
-    let horiver = { x: 0, y: 0, vx: 0, vy: 0, active: false, alive: true };
-    let horiverFacing = { x: 0, y: 1 }; // for vision cone
+    let horiver = {
+      x: 0, y: 0, vx: 0, vy: 0,
+      active: false, alive: true,
+      state: "patrol",
+      patrolIndex: 0,
+      lastKnownX: 0,
+      lastKnownY: 0,
+      searchTimer: 0,
+      timeSinceSeen: 0
+    };
+    let horiverFacing = { x: 0, y: 1 };
     let keys = { w: false, a: false, s: false, d: false };
-    let lastDir = { x: 0, y: 1 };
 
     let haveFlashlight = false;
     let haveKey = false;
@@ -396,13 +546,14 @@
     let gameOver = false;
     let win = false;
 
-    // stealth / rage
     let playerHidden = false;
     let closetNearby = false;
     let closetTile = null;
-    let horiverEnraged = false;
+    let hideReturnPos = null;
 
-    // interaction system (press R / F)
+    let mouseX = canvas.width / 2;
+    let mouseY = canvas.height / 2;
+
     let interactionPrompt = "";
     let interactionAction = null;
     const interactionEl = document.getElementById("interactionPrompt");
@@ -414,17 +565,23 @@
     }
 
     function resetGame() {
-      const startTile = findTile(T_START) || { x: 5, y: WORLD_H - 5 };
+      const startTile = findTile(T_START) || { x: Math.floor(WORLD_W / 2), y: WORLD_H - 40 };
       player.x = (startTile.x + 0.5) * TILE;
       player.y = (startTile.y + 0.5) * TILE;
       player.vx = player.vy = 0;
 
-      const throneTile = findTile(T_THRONE) || { x: 14, y: 4 };
+      const throneTile = findTile(T_THRONE) || { x: Math.floor(WORLD_W / 2), y: 50 };
       horiver.x = (throneTile.x + 0.5) * TILE;
       horiver.y = (throneTile.y + 0.5) * TILE;
       horiver.vx = horiver.vy = 0;
       horiver.active = false;
       horiver.alive = true;
+      horiver.state = "patrol";
+      horiver.patrolIndex = 0;
+      horiver.lastKnownX = horiver.x;
+      horiver.lastKnownY = horiver.y;
+      horiver.searchTimer = 0;
+      horiver.timeSinceSeen = 0;
       horiverFacing = { x: 0, y: 1 };
 
       haveFlashlight = false;
@@ -433,17 +590,18 @@
       vapeDestroyed = false;
       gameOver = false;
       win = false;
-
       playerHidden = false;
       closetNearby = false;
       closetTile = null;
-      horiverEnraged = false;
+      hideReturnPos = null;
 
       document.getElementById("subtitle").textContent =
-        "Mission: find the flashlight, key, vape and bathroom in Hóriver’s cursed mansion–castle";
+        "Mission: find the flashlight, key, vape and bathroom in Hóriver’s cursed mega-mansion–castle";
 
       hideAlert();
       clearInteraction();
+      stopFootsteps();
+      stopHeartbeat();
     }
 
     // ===== Input =====
@@ -455,22 +613,15 @@
       if (k === "d") keys.d = true;
 
       if (k === "f") {
-        if (
-          !document.getElementById("welcomeOverlay").classList.contains("active") &&
-          !gameOver &&
-          !win
-        ) {
+        if (!document.getElementById("welcomeOverlay").classList.contains("active") && !gameOver && !win) {
           toggleHideInCloset();
         }
       }
 
       if (k === "r") {
-        if (
-          interactionAction &&
-          !document.getElementById("welcomeOverlay").classList.contains("active") &&
-          !gameOver &&
-          !win
-        ) {
+        if (interactionAction &&
+            !document.getElementById("welcomeOverlay").classList.contains("active") &&
+            !gameOver && !win) {
           const fn = interactionAction;
           interactionAction = null;
           interactionPrompt = "";
@@ -486,6 +637,12 @@
       if (k === "s") keys.s = false;
       if (k === "a") keys.a = false;
       if (k === "d") keys.d = false;
+    });
+
+    canvas.addEventListener("mousemove", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouseX = e.clientX - rect.left;
+      mouseY = e.clientY - rect.top;
     });
 
     // ===== Alert banner =====
@@ -506,30 +663,23 @@
       }
     }
 
-    function isCloset(tx, ty) {
-      return tileAt(tx, ty) === T_CLOSET;
-    }
-
-    // helper: find nearby tiles of certain types within a radius (pixels)
-    function findNearbyTile(types, px, py, range = 32) {
+    function findNearbyTile(types, px, py, range = 44) {
       const tx = Math.floor(px / TILE);
       const ty = Math.floor(py / TILE);
-
       let best = null;
       let bestDist = Infinity;
-
       for (let dy = -1; dy <= 1; dy++) {
         for (let dx = -1; dx <= 1; dx++) {
           const nx = tx + dx;
           const ny = ty + dy;
-          const tile = tileAt(nx, ny);
-          if (types.includes(tile)) {
+          const t = tileAt(nx, ny);
+          if (types.includes(t)) {
             const cx = (nx + 0.5) * TILE;
             const cy = (ny + 0.5) * TILE;
             const d = Math.hypot(px - cx, py - cy);
             if (d < range && d < bestDist) {
               bestDist = d;
-              best = { x: nx, y: ny, tile };
+              best = { x: nx, y: ny, tile: t };
             }
           }
         }
@@ -539,22 +689,19 @@
 
     function pickupCheck() {
       clearInteraction();
-
       const px = player.x;
       const py = player.y;
 
-      // Nearby items
       const near = findNearbyTile(
         [T_FLASHLIGHT, T_KEY, T_CHEST, T_BATHROOM, T_THRONE],
-        px, py, 34
+        px, py, 44
       );
 
       if (near) {
         const { x: tx, y: ty, tile: t } = near;
 
-        // flashlight
         if (t === T_FLASHLIGHT && !haveFlashlight) {
-          interactionPrompt = 'Press R to pick up flashlight';
+          interactionPrompt = "Press R to pick up flashlight";
           interactionAction = () => {
             haveFlashlight = true;
             world[ty][tx] = T_FLOOR;
@@ -564,34 +711,31 @@
           };
         }
 
-        // key
         if (t === T_KEY && !haveKey) {
-          interactionPrompt = 'Press R to pick up key';
+          interactionPrompt = "Press R to pick up key";
           interactionAction = () => {
             haveKey = true;
             world[ty][tx] = T_FLOOR;
             safePlay(sounds.pickup);
             awakenHoriver();
             document.getElementById("subtitle").textContent =
-              "Mission: reach the chest and steal the vape";
+              "Mission: reach a chest and steal the vape";
           };
         }
 
-        // chest -> vape
         if (t === T_CHEST && haveKey && !haveVape && !vapeDestroyed) {
-          interactionPrompt = 'Press R to steal Horiver\'s vape';
+          interactionPrompt = "Press R to steal Horiver's vape";
           interactionAction = () => {
             haveVape = true;
             safePlay(sounds.door);
             safePlay(sounds.pickup);
             document.getElementById("subtitle").textContent =
-              "Mission: find the bathroom and flush the vape";
+              "Mission: find a bathroom and flush the vape";
           };
         }
 
-        // bathroom flush
         if (t === T_BATHROOM && haveVape && !vapeDestroyed) {
-          interactionPrompt = 'Press R to flush the vape';
+          interactionPrompt = "Press R to flush the vape";
           interactionAction = () => {
             haveVape = false;
             vapeDestroyed = true;
@@ -599,36 +743,32 @@
             safePlay(sounds.deathScream);
             horiver.alive = false;
             horiver.active = false;
+            stopHeartbeat();
             document.getElementById("subtitle").textContent =
               "Mission: return to the throne to claim your reward";
           };
         }
 
-        // throne -> finish
         if (t === T_THRONE && vapeDestroyed && !win) {
-          interactionPrompt = 'Press R to claim your reward';
+          interactionPrompt = "Press R to claim your reward";
           interactionAction = () => {
             finishLevel();
           };
         }
       }
 
-      // closet detection (for F)
+      // Closets
       closetNearby = false;
       closetTile = null;
-      const nearCloset = findNearbyTile([T_CLOSET], px, py, 40);
+      const nearCloset = findNearbyTile([T_CLOSET], px, py, 44);
       if (nearCloset) {
         closetNearby = true;
         closetTile = { x: nearCloset.x, y: nearCloset.y };
         const closetMsg = playerHidden
           ? "Press F to leave closet"
           : "Press F to hide in closet";
-
-        if (!interactionPrompt) {
-          interactionPrompt = closetMsg;
-        } else {
-          interactionPrompt += " | " + closetMsg;
-        }
+        if (!interactionPrompt) interactionPrompt = closetMsg;
+        else interactionPrompt += " | " + closetMsg;
       }
 
       interactionEl.textContent = interactionPrompt;
@@ -639,6 +779,8 @@
       safePlay(sounds.win);
       document.getElementById("winOverlay").classList.add("active");
       clearInteraction();
+      stopFootsteps();
+      stopHeartbeat();
     }
 
     function killPlayer() {
@@ -647,6 +789,8 @@
       safePlay(sounds.jumpscare);
       document.getElementById("deathOverlay").classList.add("active");
       clearInteraction();
+      stopFootsteps();
+      stopHeartbeat();
     }
 
     function moveEntity(ent, dt) {
@@ -665,24 +809,23 @@
     }
 
     function toggleHideInCloset() {
-      // leave closet
       if (playerHidden) {
         playerHidden = false;
+        if (hideReturnPos) {
+          player.x = hideReturnPos.x;
+          player.y = hideReturnPos.y;
+        }
+        hideReturnPos = null;
         interactionPrompt = "";
         interactionEl.textContent = "";
         return;
       }
-
-      // enter closet
       if (!closetNearby || !closetTile) return;
-
       playerHidden = true;
-      player.x = (closetTile.x + 0.5) * TILE;
-      player.y = (closetTile.y + 0.5) * TILE;
+      hideReturnPos = { x: player.x, y: player.y };
       player.vx = player.vy = 0;
-
-      horiverEnraged = false; // lose the lock when you hide
-
+      horiver.timeSinceSeen = 999;
+      horiver.searchTimer = 0;
       interactionPrompt = "Hidden in closet. Press F to leave.";
       interactionEl.textContent = interactionPrompt;
     }
@@ -690,10 +833,10 @@
     function updateMovement(dt) {
       if (playerHidden) {
         player.vx = player.vy = 0;
-        pickupCheck(); // still update F prompt etc.
+        stopFootsteps();
+        pickupCheck();
         return;
       }
-
       let dx = 0, dy = 0;
       if (keys.w) dy -= 1;
       if (keys.s) dy += 1;
@@ -705,55 +848,110 @@
         dx /= len; dy /= len;
         player.vx = dx * playerSpeed;
         player.vy = dy * playerSpeed;
-        lastDir.x = dx;
-        lastDir.y = dy;
+        playFootsteps();
       } else {
         player.vx = player.vy = 0;
+        stopFootsteps();
       }
 
       moveEntity(player, dt);
       pickupCheck();
     }
 
-    function updateHoriver(dt) {
-      if (!horiver.active || !horiver.alive) return;
+    function setHoriverState(st) {
+      if (horiver.state === st) return;
+      const prev = horiver.state;
+      horiver.state = st;
+      if (st === "chase") playHeartbeat();
+      else if (prev === "chase" && st !== "chase") stopHeartbeat();
+    }
 
+    function canHoriverSeePlayer() {
+      if (!horiver.alive || !horiver.active) return false;
+      if (playerHidden) return false;
       const dx = player.x - horiver.x;
       const dy = player.y - horiver.y;
-      const dist = Math.hypot(dx, dy) || 1;
-
-      // update facing whenever he moves
+      const dist = Math.hypot(dx, dy);
+      const visionRange = 420;
+      if (dist > visionRange) return false;
       const dirX = dx / dist;
       const dirY = dy / dist;
-      if (dist > 1) {
-        horiverFacing.x = dirX;
-        horiverFacing.y = dirY;
+      const f = horiverFacing;
+      const dot = dirX * f.x + dirY * f.y;
+      const fov = horiver.state === "chase" ? (60 * Math.PI / 180) : (40 * Math.PI / 180);
+      const coneCos = Math.cos(fov / 2);
+      return dot > coneCos;
+    }
+
+    function updateHoriver(dt) {
+      if (!horiver.active || !horiver.alive) return;
+      const sees = canHoriverSeePlayer();
+      if (sees) {
+        horiver.timeSinceSeen = 0;
+        horiver.lastKnownX = player.x;
+        horiver.lastKnownY = player.y;
+        setHoriverState("chase");
+      } else {
+        horiver.timeSinceSeen += dt;
       }
 
-      // vision cone: slim but long, only matters if you have the vape and aren't hidden
-      if (!horiverEnraged && haveVape && !playerHidden) {
-        const maxRange = 260;
-        if (dist < maxRange) {
-          const toPlayerX = dx / dist;
-          const toPlayerY = dy / dist;
-          const dot =
-            toPlayerX * horiverFacing.x + toPlayerY * horiverFacing.y; // cos(angle)
+      const base = horiverBaseSpeed;
+      let targetX = horiver.x;
+      let targetY = horiver.y;
+      let speed = base;
 
-          const coneCos = Math.cos(20 * Math.PI / 180); // ~0.94, narrow
-          if (dot > coneCos) {
-            horiverEnraged = true;
-            showAlert();
+      if (horiver.state === "patrol") {
+        if (!patrolPoints.length) {
+          targetX = player.x;
+          targetY = player.y;
+          speed = base * 0.7;
+        } else {
+          const p = patrolPoints[horiver.patrolIndex % patrolPoints.length];
+          targetX = (p.x + 0.5) * TILE;
+          targetY = (p.y + 0.5) * TILE;
+          speed = base * 0.6;
+          const dpx = targetX - horiver.x;
+          const dpy = targetY - horiver.y;
+          if (Math.hypot(dpx, dpy) < 10) {
+            horiver.patrolIndex = (horiver.patrolIndex + 1) % patrolPoints.length;
+          }
+        }
+      } else if (horiver.state === "chase") {
+        targetX = player.x;
+        targetY = player.y;
+        speed = base * 1.6;
+        if (horiver.timeSinceSeen > 3) {
+          setHoriverState("search");
+          horiver.searchTimer = 0;
+        }
+      } else if (horiver.state === "search") {
+        targetX = horiver.lastKnownX;
+        targetY = horiver.lastKnownY;
+        speed = base * 0.9;
+        const ddx = targetX - horiver.x;
+        const ddy = targetY - horiver.y;
+        if (Math.hypot(ddx, ddy) < 12) {
+          horiver.searchTimer += dt;
+          if (horiver.searchTimer > 5) {
+            setHoriverState("patrol");
+            horiver.searchTimer = 0;
           }
         }
       }
 
-      const speed = horiverEnraged ? horiverBaseSpeed * 1.5 : horiverBaseSpeed;
-
-      if (dist > 1) {
-        horiver.vx = dirX * speed;
-        horiver.vy = dirY * speed;
+      const mdx = targetX - horiver.x;
+      const mdy = targetY - horiver.y;
+      const mdist = Math.hypot(mdx, mdy) || 1;
+      if (mdist > 1) {
+        const vx = (mdx / mdist) * speed;
+        const vy = (mdy / mdist) * speed;
+        horiver.vx = vx;
+        horiver.vy = vy;
+        horiverFacing.x = mdx / mdist;
+        horiverFacing.y = mdy / mdist;
       } else {
-        horiver.vx = horiver.vy = 0;
+        horiver.vx = 0;
+        horiver.vy = 0;
       }
 
       moveEntity(horiver, dt);
@@ -777,10 +975,16 @@
       return { x: camX, y: camY };
     }
 
-    // Draw a 32×32 furniture tile from furniture.png at some source coords
-    function drawFurnitureTile(sx, sy, dx, dy) {
-      if (!imgFurniture.complete || !imgFurniture.naturalWidth) return;
-      ctx.drawImage(imgFurniture, sx, sy, 32, 32, dx, dy, TILE, TILE);
+    // Tileset helpers (1-based coords)
+    function drawTilesetTile(img, tileX, tileY, dx, dy) {
+      if (!img.complete || !img.naturalWidth) {
+        ctx.fillStyle = "#444";
+        ctx.fillRect(dx, dy, TILE, TILE);
+        return;
+      }
+      const sx = (tileX - 1) * 32;
+      const sy = (tileY - 1) * 32;
+      ctx.drawImage(img, sx, sy, 32, 32, dx, dy, TILE, TILE);
     }
 
     function render() {
@@ -792,43 +996,78 @@
       const endTX = Math.ceil((cam.x + canvas.width) / TILE);
       const endTY = Math.ceil((cam.y + canvas.height) / TILE);
 
-      // ---- draw tiles & some furniture ----
       for (let ty = startTY; ty <= endTY; ty++) {
         for (let tx = startTX; tx <= endTX; tx++) {
           const t = tileAt(tx, ty);
           const sx = tx * TILE - cam.x;
           const sy = ty * TILE - cam.y;
+          const reg = (ty >= 0 && ty < WORLD_H && tx >= 0 && tx < WORLD_W)
+            ? regionType[ty][tx]
+            : REGION_STONE;
 
           if (t === T_WALL) {
-            ctx.fillStyle = "#261014";        // wall
-          } else if (t === T_CLOSET) {
-            ctx.fillStyle = "#044b55";        // safe closet
-          } else if (t === T_BATHROOM) {
-            ctx.fillStyle = "#325c7a";        // bathroom
+            // simple wall from dungeons-pack
+            drawTilesetTile(imgTileset, 13, 1, sx, sy);
           } else {
-            ctx.fillStyle = "#120509";        // floor
-          }
-          ctx.fillRect(sx, sy, TILE, TILE);
+            // floors
+            if (reg === REGION_HARDWOOD) {
+              drawTilesetTile(imgFurniture, 25, 19, sx, sy); // hardwood
+            } else if (reg === REGION_CARPET_LEFT) {
+              drawTilesetTile(imgFurniture, 24, 6, sx, sy);
+            } else if (reg === REGION_CARPET_MID) {
+              drawTilesetTile(imgFurniture, 25, 6, sx, sy);
+            } else if (reg === REGION_CARPET_RIGHT) {
+              drawTilesetTile(imgFurniture, 26, 6, sx, sy);
+            } else {
+              const r = coordRand(tx, ty);
+              if (r < 0.15) drawTilesetTile(imgTileset, 19, 11, sx, sy);
+              else if (r < 0.3) drawTilesetTile(imgTileset, 12, 11, sx, sy);
+              else drawTilesetTile(imgTileset, 18, 11, sx, sy);
 
+              // defects & bones
+              if (r > 0.85) {
+                const defectX = 1 + Math.floor(coordRand(tx + 99, ty + 13) * 16);
+                drawTilesetTile(imgTileset, defectX, 4, sx, sy);
+              }
+              if (r > 0.97) {
+                drawTilesetTile(imgTileset, 11, 15, sx, sy); // bones
+              }
+            }
+          }
+
+          // throne visual
           if (t === T_THRONE) {
-            ctx.fillStyle = "#c28b3b";
-            ctx.fillRect(sx + 4, sy + 4, TILE - 8, TILE - 8);
+            if (imgThrone.complete && imgThrone.naturalWidth) {
+              ctx.drawImage(imgThrone, sx, sy - TILE / 2, TILE, TILE * 1.5);
+            } else {
+              ctx.fillStyle = "#c28b3b";
+              ctx.fillRect(sx + 4, sy + 4, TILE - 8, TILE - 8);
+            }
           }
 
-          // simple furniture examples
-          if (tx === 21 && ty === 8) {
-            drawFurnitureTile(0, 0, sx, sy);          // table/sofa
+          // bathroom props
+          if (t === T_BATHROOM) {
+            const r2 = coordRand(tx + 7, ty + 17);
+            const targetImg = r2 < 0.33 ? imgToilet : (r2 < 0.66 ? imgSink : imgBath);
+            if (targetImg.complete && targetImg.naturalWidth) {
+              ctx.drawImage(targetImg, sx, sy, TILE, TILE);
+            }
           }
-          if (tx === 5 && ty === 8) {
-            drawFurnitureTile(96, 0, sx, sy);        // bed/couch
-          }
-          if (tx === 20 && ty === 4) {
-            drawFurnitureTile(0, 160, sx, sy);       // toilet/fixture
+
+          // closet visual
+          if (t === T_CLOSET) {
+            if (imgCloset.complete && imgCloset.naturalWidth) {
+              ctx.drawImage(imgCloset, sx, sy - TILE / 4, TILE, TILE * 1.25);
+            } else {
+              ctx.fillStyle = "#044b55";
+              ctx.fillRect(sx + 4, sy + 4, TILE - 8, TILE - 8);
+            }
           }
         }
       }
 
-      function drawSprite(img, gx, gy, scale = 0.9) {
+      // Simple sprite drawing
+      function drawSprite(img, gx, gy, scale = 0.95) {
         const screenX = gx * TILE - cam.x;
         const screenY = gy * TILE - cam.y;
         const size = TILE * scale;
@@ -845,64 +1084,96 @@
         }
       }
 
-      // ---- items (with key glow) ----
+      // items
       for (let ty = startTY; ty <= endTY; ty++) {
         for (let tx = startTX; tx <= endTX; tx++) {
           const t = tileAt(tx, ty);
-          const sxItem = tx * TILE - cam.x;
-          const syItem = ty * TILE - cam.y;
-
-          if (t === T_FLASHLIGHT && !haveFlashlight) {
-            drawSprite(imgFlashlight, tx, ty, 0.95);
-          }
-
-          if (t === T_KEY && !haveKey) {
-            ctx.fillStyle = "#ffd54a";
-            ctx.fillRect(sxItem + 6, syItem + 6, TILE - 12, TILE - 12);
-            drawSprite(imgKey, tx, ty, 0.95);
-          }
-
+          if (t === T_FLASHLIGHT && !haveFlashlight) drawSprite(imgFlashlight, tx, ty);
+          if (t === T_KEY && !haveKey) drawSprite(imgKey, tx, ty);
           if (t === T_CHEST && haveKey && !vapeDestroyed && !haveVape) {
-            drawSprite(imgVape, tx, ty, 0.95);
+            drawSprite(imgVape, tx, ty);
           }
         }
       }
 
-      // ---- player & horiver ----
-      drawSprite(imgPlayer, player.x / TILE, player.y / TILE, 0.95);
+      // player & horiver
+      if (!playerHidden) drawSprite(imgPlayer, player.x / TILE, player.y / TILE);
       if (horiver.alive && horiver.active) {
-        drawSprite(imgHoriver, horiver.x / TILE, horiver.y / TILE, 0.95);
+        drawSprite(imgHoriver, horiver.x / TILE, horiver.y / TILE);
       }
 
       applyFog(player.x - cam.x, player.y - cam.y);
+      drawHUD();
     }
 
-    // Proper fog: dark everywhere with a bright circular FOV around player
+    function drawHUD() {
+      const size = 22;
+      let x = 10;
+      const y = canvas.height - size - 8;
+
+      function drawIcon(img, have) {
+        ctx.save();
+        ctx.globalAlpha = have ? 1.0 : 0.25;
+        if (img.complete && img.naturalWidth) {
+          ctx.drawImage(img, x, y, size, size);
+        } else {
+          ctx.fillStyle = have ? "#ffe696" : "#555";
+          ctx.fillRect(x, y, size, size);
+        }
+        ctx.restore();
+        x += size + 6;
+      }
+
+      drawIcon(imgHUDFlashlight, haveFlashlight);
+      drawIcon(imgHUDKey, haveKey);
+      drawIcon(imgHUDVape, haveVape);
+      drawIcon(imgHUDToken, vapeDestroyed);
+    }
+
     function applyFog(pScreenX, pScreenY) {
       ctx.save();
 
-      // full-screen darkness
-      ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // punch out a radial gradient of light
-      ctx.globalCompositeOperation = "destination-out";
-
-      const innerRadius = haveFlashlight ? 40 : 20;
-      const outerRadius = haveFlashlight ? 260 : 150;
-
+      const outerRadius = haveFlashlight ? 260 : 180;
       const g = ctx.createRadialGradient(
-        pScreenX, pScreenY, innerRadius,
+        pScreenX, pScreenY, 0,
         pScreenX, pScreenY, outerRadius
       );
-      g.addColorStop(0, "rgba(0,0,0,1)");
-      g.addColorStop(0.6, "rgba(0,0,0,0.4)");
-      g.addColorStop(1, "rgba(0,0,0,0)");
-
+      g.addColorStop(0, "rgba(0,0,0,0)");
+      g.addColorStop(0.7, "rgba(0,0,0,0.45)");
+      g.addColorStop(1, "rgba(0,0,0,0.96)");
       ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(pScreenX, pScreenY, outerRadius, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      if (haveFlashlight) {
+        ctx.globalCompositeOperation = "destination-out";
+
+        const dx = mouseX - pScreenX;
+        const dy = mouseY - pScreenY;
+        let len = Math.hypot(dx, dy);
+        if (len < 0.001) len = 1;
+        const dirX = dx / len;
+        const dirY = dy / len;
+
+        const coneLength = 420;
+        const coneWidth = Math.PI / 10;
+
+        const angle = Math.atan2(dirY, dirX);
+        const a1 = angle - coneWidth;
+        const a2 = angle + coneWidth;
+
+        const tip1x = pScreenX + Math.cos(a1) * coneLength;
+        const tip1y = pScreenY + Math.sin(a1) * coneLength;
+        const tip2x = pScreenX + Math.cos(a2) * coneLength;
+        const tip2y = pScreenY + Math.sin(a2) * coneLength;
+
+        ctx.beginPath();
+        ctx.moveTo(pScreenX, pScreenY);
+        ctx.lineTo(tip1x, tip1y);
+        ctx.lineTo(tip2x, tip2y);
+        ctx.closePath();
+        ctx.fillStyle = "rgba(0,0,0,0.98)";
+        ctx.fill();
+      }
 
       ctx.restore();
     }
@@ -917,8 +1188,9 @@
         updateMovement(dt);
         updateHoriver(dt);
         render();
+      } else {
+        render();
       }
-
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
@@ -937,7 +1209,7 @@
 
     const welcomeMessages = [
       "Welcome to Hubios communism party game. Your mission is to save communism Iceland, but first, you need to defeat some foes...",
-      "Now you'll enter... Horivers lair!!!",
+      "Now you'll enter... Horiver's lair!!!",
       "Are you ready?"
     ];
     let welcomeStep = 0;
@@ -971,7 +1243,6 @@
 
     welcomeCard.addEventListener("click", () => {
       startMusicOnce();
-
       if (!typingDone) {
         const msg = welcomeMessages[welcomeStep];
         clearInterval(typingTimer);
@@ -982,7 +1253,6 @@
         welcomeHintEl.textContent = "Click this box to continue...";
         return;
       }
-
       welcomeStep++;
       if (welcomeStep < welcomeMessages.length) {
         startTyping();
@@ -1012,10 +1282,6 @@
       winOverlay.classList.remove("active");
       resetGame();
     });
-
-    // initial render
-    render();
   </script>
 </body>
 </html>
-
