@@ -302,25 +302,25 @@
       }
     }
 
-    // simple furniture system
+    // furniture list (with scaling)
     const furniture = [];
-    function addFurniture(img, tx, ty) {
-      furniture.push({ img, tx, ty });
+    function addFurniture(img, tx, ty, scaleX = 1, scaleY = 1) {
+      furniture.push({ img, tx, ty, scaleX, scaleY });
     }
 
     // patrol points for Horiver
     const patrolPoints = [];
-
     function addPatrolPoint(tx, ty) {
       if (inBounds(tx, ty)) patrolPoints.push({ x: tx, y: ty });
     }
 
-    // useful rooms
+    // keep references for start/throne
     let startTile = { x: 3, y: 5 };
     let throneTile = { x: 30, y: 50 };
 
-    function generateBlueprintCastle() {
-      // Player entry corridor (top-left)
+    // ==== LEVEL LAYOUT (castle with hall + rooms) ====
+    function generateCastle() {
+      // Player entry room (top-left)
       const entryRoom = { x0: 3, y0: 4, x1: 11, y1: 10 };
       carveRect(entryRoom.x0, entryRoom.y0, entryRoom.x1, entryRoom.y1);
       startTile = { x: Math.floor((entryRoom.x0 + entryRoom.x1) / 2), y: entryRoom.y0 + 1 };
@@ -329,6 +329,7 @@
       // Central vertical hall
       const hall = { x0: 24, y0: 8, x1: 35, y1: 40 };
       carveRect(hall.x0, hall.y0, hall.x1, hall.y1);
+
       // Corridor from entry to hall
       carveRect(entryRoom.x1, 7, hall.x0, 11);
 
@@ -398,37 +399,46 @@
         if (inBounds(p.x, p.y)) world[p.y][p.x] = T_CLOSET;
       });
 
-      // --- furniture placement ---
+      // --- furniture placement (with scaling) ---
       // Bathroom fixtures
-      addFurniture(imgBath, bathL.x0 + 1, bathL.y0 + 3);
-      addFurniture(imgSink, bathL.x0 + 3, bathL.y0 + 2);
-      addFurniture(imgToilet, bathFlush.x, bathFlush.y);
+      addFurniture(imgBath,   bathL.x0 + 1, bathL.y0 + 3, 3, 3);  // big bath
+      addFurniture(imgSink,   bathL.x0 + 3, bathL.y0 + 2, 2, 2);  // bigger sink
+      addFurniture(imgToilet, bathFlush.x,  bathFlush.y,  2, 2);  // big toilet
 
-      // Bedrooms
-      addFurniture(imgBed, bedL.x0 + 2, bedL.y0 + 2);
-      addFurniture(imgBed, bedR.x0 + 2, bedR.y0 + 2);
-      addFurniture(imgTable, bedL.x1 - 3, bedL.y0 + 2);
-      addFurniture(imgTable, bedR.x1 - 3, bedR.y0 + 2);
+      // Bedrooms (beds 2x, tables 2x, chairs 2x)
+      addFurniture(imgBed,   bedL.x0 + 3, bedL.y0 + 3, 2, 2);
+      addFurniture(imgTable, bedL.x1 - 3, bedL.y0 + 3, 2, 2);
+      addFurniture(imgChair, bedL.x1 - 4, bedL.y0 + 5, 2, 2);
 
-      // Armory
-      addFurniture(imgArmorStand, armory.x0 + 2, armory.y0 + 2);
-      addFurniture(imgWeaponStand, armory.x1 - 3, armory.y0 + 2);
+      addFurniture(imgBed,   bedR.x0 + 3, bedR.y0 + 3, 2, 2);
+      addFurniture(imgTable, bedR.x1 - 3, bedR.y0 + 3, 2, 2);
+      addFurniture(imgChair, bedR.x1 - 4, bedR.y0 + 5, 2, 2);
 
-      // Kitchen
-      addFurniture(imgStove, kitchen.x0 + 2, kitchen.y0 + 2);
-      addFurniture(imgTable, kitchen.x0 + 4, kitchen.y0 + 3);
+      // Armory: armor stand, weapon stand, extra stove
+      addFurniture(imgArmorStand,  armory.x0 + 3, armory.y0 + 3, 2, 2);
+      addFurniture(imgWeaponStand, armory.x1 - 3, armory.y0 + 3, 2, 2);
+      addFurniture(imgStove,       armory.x0 + 5, armory.y0 + 3, 3, 3); // extra stove
 
-      // Infirmary
-      addFurniture(imgMedicalBed, infirmary.x0 + 2, infirmary.y0 + 2);
-      addFurniture(imgMedicalShelf, infirmary.x1 - 3, infirmary.y0 + 2);
+      // Kitchen: main stove + big table with chairs
+      addFurniture(imgStove, kitchen.x0 + 2, kitchen.y0 + 2, 3, 3);
+      addFurniture(imgTable, kitchen.x0 + 6, kitchen.y0 + 3, 2, 2);
+      addFurniture(imgChair, kitchen.x0 + 6, kitchen.y0 + 5, 2, 2);
+      addFurniture(imgChair, kitchen.x0 + 8, kitchen.y0 + 5, 2, 2);
 
-      // Lab
-      addFurniture(imgTable, lab.x0 + 2, lab.y0 + 2);
+      // Infirmary: multiple medical beds + shelves (all 2x)
+      addFurniture(imgMedicalBed,   infirmary.x0 + 3, infirmary.y0 + 2, 2, 2);
+      addFurniture(imgMedicalBed,   infirmary.x0 + 7, infirmary.y0 + 2, 2, 2);
+      addFurniture(imgMedicalBed,   infirmary.x0 + 3, infirmary.y0 + 5, 2, 2);
+      addFurniture(imgMedicalShelf, infirmary.x1 - 3, infirmary.y0 + 3, 2, 2);
 
-      // Throne room throne sprite sits on throne tile
-      addFurniture(imgThrone, throneTile.x, throneTile.y - 1);
+      // Lab: big table with chair
+      addFurniture(imgTable, lab.x0 + 4, lab.y0 + 3, 2, 2);
+      addFurniture(imgChair, lab.x0 + 4, lab.y0 + 5, 2, 2);
 
-      // Patrol points: center of each room + corridor mid
+      // Throne room: huge throne (3x)
+      addFurniture(imgThrone, throneTile.x, throneTile.y - 1, 3, 3);
+
+      // Patrol points: center of rooms/hall
       function center(r) {
         return {
           x: Math.floor((r.x0 + r.x1) / 2),
@@ -491,7 +501,7 @@
     const imgCobbleCrack = makeImage("cobble-crack.png");
     const imgCobbleDark = makeImage("cobble-dark.png");
 
-    // Furniture
+    // Furniture / props
     const imgThrone = makeImage("throne.png");
     const imgCloset = makeImage("closet.png");
     const imgBath = makeImage("bath.png");
@@ -504,6 +514,7 @@
     const imgWeaponStand = makeImage("weapon-stand.png");
     const imgMedicalBed = makeImage("medical-bed.png");
     const imgMedicalShelf = makeImage("medical-shelf.png");
+    const imgChair = makeImage("chair.png");
 
     // HUD icons
     const imgHUDFlashlight = imgFlashlight;
@@ -912,7 +923,7 @@
       const dx = player.x - horiver.x;
       const dy = player.y - horiver.y;
       const dist = Math.hypot(dx, dy);
-      const visionRange = 360; // not too huge
+      const visionRange = 360;
       if (dist > visionRange) return false;
 
       const dirX = dx / dist;
@@ -1054,33 +1065,40 @@
             }
           }
 
-          // closets & bathroom & throne base overlays
           if (t === T_CLOSET) {
+            // closet 2x size
+            const w = TILE * 2;
+            const h = TILE * 2;
+            const dx = sx + (TILE - w) / 2;
+            const dy = sy + TILE - h;
             if (imgCloset.complete && imgCloset.naturalWidth) {
-              ctx.drawImage(imgCloset, sx, sy - TILE * 0.25, TILE, TILE * 1.25);
+              ctx.drawImage(imgCloset, dx, dy, w, h);
             } else {
               ctx.fillStyle = "#044b55";
-              ctx.fillRect(sx + 4, sy + 4, TILE - 8, TILE - 8);
+              ctx.fillRect(dx, dy, w, h);
             }
           }
 
           if (t === T_BATHROOM) {
-            if (imgToilet.complete && imgToilet.naturalWidth) {
-              ctx.drawImage(imgToilet, sx, sy, TILE, TILE);
-            }
-          }
-
-          if (t === T_THRONE) {
-            // throne furniture already drawn slightly above; nothing extra here
+            // toilet already placed as furniture; nothing extra
           }
         }
       }
 
-      // furniture pass
+      // furniture pass with scaling
       for (const f of furniture) {
         const sx = f.tx * TILE - cam.x;
         const sy = f.ty * TILE - cam.y;
-        drawImageTile(f.img, sx, sy);
+        const w = TILE * (f.scaleX || 1);
+        const h = TILE * (f.scaleY || 1);
+        const dx = sx + (TILE - w) / 2;
+        const dy = sy + TILE - h; // stand on tile
+        if (f.img.complete && f.img.naturalWidth) {
+          ctx.drawImage(f.img, dx, dy, w, h);
+        } else {
+          ctx.fillStyle = "#888";
+          ctx.fillRect(dx, dy, w, h);
+        }
       }
 
       function drawSprite(img, gx, gy, scale = 0.95) {
@@ -1121,7 +1139,7 @@
         drawSprite(pImg, player.x / TILE, player.y / TILE);
       }
 
-      // horiver (2× bigger-ish)
+      // horiver (bigger)
       if (horiver.alive && horiver.active) {
         let hImg = imgHoriverDown;
         if (Math.abs(horiverFacingVec.x) > Math.abs(horiverFacingVec.y)) {
@@ -1160,23 +1178,25 @@
       drawIcon(imgHUDToken, vapeDestroyed);
     }
 
-    // Flashlight: radial aura + directional "cone" in facing direction
+    // Flashlight: fix black-circle bug, aura + beam in facing direction
     function applyFog(pScreenX, pScreenY) {
       ctx.save();
 
-      // Fill with darkness
+      // 1) Fill with darkness in normal mode
+      ctx.globalCompositeOperation = "source-over";
       ctx.fillStyle = "rgba(0,0,0,0.92)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Cut light out
+      // 2) Cut light holes out
       ctx.globalCompositeOperation = "destination-out";
 
       // small aura around player
-      const auraRadius = haveFlashlight ? 120 : 90;
+      const auraRadius = haveFlashlight ? 130 : 90;
       ctx.beginPath();
       ctx.arc(pScreenX, pScreenY, auraRadius, 0, Math.PI * 2);
       ctx.fill();
 
+      // flashlight beam
       if (haveFlashlight) {
         let dirX = 0, dirY = 1;
         if (playerFacing === "up") { dirX = 0; dirY = -1; }
@@ -1187,7 +1207,7 @@
         const coneLength = 260;
         const fx = pScreenX + dirX * coneLength;
         const fy = pScreenY + dirY * coneLength;
-        const beamRadius = 190;
+        const beamRadius = 200;
 
         ctx.beginPath();
         ctx.arc(fx, fy, beamRadius, 0, Math.PI * 2);
@@ -1302,7 +1322,7 @@
     });
 
     // ---- boot ----
-    generateBlueprintCastle();
+    generateCastle();
     requestAnimationFrame(loop);
   </script>
 </body>
