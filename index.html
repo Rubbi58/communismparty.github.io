@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Communism Party – Hóriver's Lair (Blueprint Layout)</title>
+  <title>Communism Party – Hóriver's Lair (Blueprint Level)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     * {
@@ -252,6 +252,7 @@
       } catch (e) {}
     }
 
+    // deterministic random from coords
     function coordRand(x, y, seed = 1337) {
       let n = x * 374761393 + y * 668265263 + seed * 1442695040888963407;
       n = (n ^ (n >> 13)) * 1274126177;
@@ -279,8 +280,8 @@
     const T_BATHROOM = 6;      // toilet (flush tile)
     const T_FLASHLIGHT = 7;
     const T_START = 8;
-    const T_SINK_TILE = 9;     // decorative
-    const T_BATH_TUB_TILE = 10; // decorative
+    const T_SINK_TILE = 9;     // visual only
+    const T_BATH_TUB_TILE = 10;// visual only
 
     const world = [];
     for (let y = 0; y < WORLD_H; y++) {
@@ -327,30 +328,29 @@
       carveRect(HALL_X0, HALL_Y0, HALL_X1, HALL_Y1);
 
       // --- PLAYER WING (top-left) ---
-      carveRect(3, 4, 7, 7);     // small player room
-      addHall(5, 7, 5, 10);      // down corridor
-      addHall(5, 11, HALL_X0, 13); // into main hall
+      carveRect(3, 4, 7, 7);          // player room
+      addHall(5, 7, 5, 10);           // down from player room
+      addHall(5, 11, HALL_X0, 13);    // into main hall
       world[5][5] = T_START;
 
       // --- LEFT WING vertical spine ---
-      addHall(11, 10, 13, 34);     // spine
-      addHall(HALL_X0, 16, 11, 18); // connector from main hall
+      addHall(11, 10, 13, 34);        // vertical tube
+      addHall(HALL_X0, 16, 11, 18);   // connector from hall
 
-      // LEFT ROOMS (top to bottom)
-
-      // Bathroom (top-left) room rectangle
+      // LEFT ROOMS
+      // Bathroom (top-left)
       carveRect(5, 10, 10, 15, T_FLOOR, bathroomTiles);
-      // EXACT bathroom fixtures: 1 toilet, 1 sink, 1 bath
-      world[12][7] = T_BATHROOM;       // toilet (flush)
-      world[11][6] = T_SINK_TILE;      // sink
-      world[13][9] = T_BATH_TUB_TILE;  // bath
+      // place exactly 1 toilet, 1 sink, 1 bath inside that room
+      world[12][7] = T_BATHROOM;       // toilet (interaction)
+      world[11][6] = T_SINK_TILE;      // sink (visual)
+      world[13][9] = T_BATH_TUB_TILE;  // bath (visual)
 
       // Bedroom (middle-left)
       carveRect(5, 18, 10, 23, T_FLOOR, bedroomLeftTiles);
       // Armory (bottom-left)
       carveRect(5, 26, 10, 33, T_FLOOR, armoryTiles);
 
-      // doorways from spine into left rooms
+      // Doorways from spine into left rooms
       addHall(10, 12, 11, 13);  // to bathroom
       addHall(10, 20, 11, 21);  // to bedroom
       addHall(10, 29, 11, 30);  // to armory
@@ -359,9 +359,9 @@
       const spineX0 = cx + 8;
       const spineX1 = spineX0 + 2;
       addHall(spineX0, 10, spineX1, 40);
-      addHall(HALL_X1, 18, spineX0, 20); // connector from main hall
+      addHall(HALL_X1, 18, spineX0, 20); // connector hall -> spine
 
-      // RIGHT ROOMS (top to bottom)
+      // RIGHT ROOMS
       // Bedroom
       carveRect(spineX1 + 1, 10, spineX1 + 7, 15, T_FLOOR, bedroomRightTiles);
       // Kitchen
@@ -371,7 +371,7 @@
       // Laboratory
       carveRect(spineX1 + 1, 31, spineX1 + 7, 36, T_FLOOR, laboratoryTiles);
 
-      // doorways from spine to right rooms
+      // Doorways from spine to right rooms
       addHall(spineX0, 12, spineX1, 13);
       addHall(spineX0, 19, spineX1, 20);
       addHall(spineX0, 26, spineX1, 27);
@@ -379,7 +379,7 @@
 
       // --- THRONE ROOM at bottom ---
       carveRect(cx - 8, 38, cx + 8, 47, T_FLOOR, throneTiles);
-      addHall(HALL_X0, 38, HALL_X1, 40); // connect hall to throne room
+      addHall(HALL_X0, 38, HALL_X1, 40); // hall into throne room
 
       if (throneTiles.length) {
         const t = throneTiles[Math.floor(throneTiles.length / 2)];
@@ -392,10 +392,10 @@
           world[y][x] = T_CLOSET;
         }
       }
-      placeCloset(8, 20);          // left bedroom
-      placeCloset(spineX1 + 2, 19); // kitchen area
-      placeCloset(spineX1 + 2, 33); // lab
-      placeCloset(cx - 2, 22);     // middle hall
+      placeCloset(8, 20);                // left bedroom
+      placeCloset(spineX1 + 2, 19);      // near kitchen
+      placeCloset(spineX1 + 2, 33);      // lab
+      placeCloset(cx - 2, 22);           // middle hall
 
       // Helper for placing special tiles in rooms
       function placeInRoom(list, tileType) {
@@ -410,7 +410,7 @@
       placeInRoom(bedroomLeftTiles, T_FLASHLIGHT);
       // Key in kitchen
       placeInRoom(kitchenTiles, T_KEY);
-      // Chests (vape spots) armory + lab + right bedroom
+      // Chests (vape) armory + lab + right bedroom
       placeInRoom(armoryTiles, T_CHEST);
       placeInRoom(laboratoryTiles, T_CHEST);
       placeInRoom(bedroomRightTiles, T_CHEST);
@@ -642,6 +642,7 @@
       mouseY = e.clientY - rect.top;
     });
 
+    // ===== Alert banner =====
     function showAlert() {
       const el = document.getElementById("alertBanner");
       el.style.display = "block";
@@ -904,10 +905,10 @@
 
       if (horiver.state === "patrol") {
         const pts = [
-          { x: 25, y: 20 },  // centre hall
-          { x: 25, y: 40 },  // near throne
-          { x: 13, y: 22 },  // left wing
-          { x: 37, y: 22 }   // right wing
+          { x: 25, y: 20 },
+          { x: 25, y: 40 },
+          { x: 13, y: 22 },
+          { x: 37, y: 22 }
         ];
         const p = pts[horiver.patrolIndex % pts.length];
         targetX = (p.x + 0.5) * TILE;
@@ -1016,7 +1017,7 @@
             }
           }
 
-          // Bathroom fixtures – exactly one of each
+          // bathroom fixtures: exactly 1 toilet, 1 sink, 1 bath
           if (t === T_BATHROOM) {
             if (imgToilet.complete && imgToilet.naturalWidth) {
               ctx.drawImage(imgToilet, sx, sy, TILE, TILE);
@@ -1147,7 +1148,7 @@
         const a2 = angle + coneWidth;
 
         const tip1x = pScreenX + Math.cos(a1) * coneLength;
-        const tip1y = pScreenY + Math.sin(a1) * coneLength;
+        const tip1y = pScreenX + Math.sin(a1) * coneLength;
         const tip2x = pScreenX + Math.cos(a2) * coneLength;
         const tip2y = pScreenY + Math.sin(a2) * coneLength;
 
@@ -1163,6 +1164,7 @@
       ctx.restore();
     }
 
+    // ===== Main loop =====
     let lastTime = performance.now();
     function loop(time) {
       const dt = Math.min((time - lastTime) / 1000, 0.05);
@@ -1171,3 +1173,101 @@
       if (!gameOver && !win && !document.getElementById("welcomeOverlay").classList.contains("active")) {
         updateMovement(dt);
         updateHoriver(dt);
+        render();
+      } else {
+        render();
+      }
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    // ===== Overlays & intro =====
+    const welcomeOverlay = document.getElementById("welcomeOverlay");
+    const welcomeCard = document.getElementById("welcomeCard");
+    const welcomeTextEl = document.getElementById("welcomeText");
+    const welcomeHintEl = document.getElementById("welcomeHint");
+    const welcomeTextWrapper = document.getElementById("welcomeTextWrapper");
+    const welcomeFinal = document.getElementById("welcomeFinal");
+    const enterBtn = document.getElementById("enterBtn");
+
+    const deathOverlay = document.getElementById("deathOverlay");
+    const winOverlay = document.getElementById("winOverlay");
+
+    const welcomeMessages = [
+      "Welcome to Hubios communism party game. Your mission is to save communism Iceland, but first, you need to defeat some foes...",
+      "Now you'll enter... Horiver's lair!!!",
+      "Are you ready?"
+    ];
+    let welcomeStep = 0;
+    let typingIndex = 0;
+    let typingTimer = null;
+    let typingDone = false;
+
+    function typeNextChar() {
+      const msg = welcomeMessages[welcomeStep];
+      if (typingIndex <= msg.length) {
+        welcomeTextEl.textContent = msg.slice(0, typingIndex);
+        typingIndex++;
+      } else {
+        clearInterval(typingTimer);
+        typingTimer = null;
+        typingDone = true;
+        welcomeHintEl.textContent = "Click this box to continue...";
+      }
+    }
+
+    function startTyping() {
+      if (typingTimer) clearInterval(typingTimer);
+      typingIndex = 0;
+      typingDone = false;
+      welcomeTextEl.textContent = "";
+      welcomeHintEl.textContent = "";
+      typingTimer = setInterval(typeNextChar, 35);
+    }
+
+    startTyping();
+
+    welcomeCard.addEventListener("click", () => {
+      startMusicOnce();
+      if (!typingDone) {
+        const msg = welcomeMessages[welcomeStep];
+        clearInterval(typingTimer);
+        typingTimer = null;
+        typingDone = true;
+        typingIndex = msg.length;
+        welcomeTextEl.textContent = msg;
+        welcomeHintEl.textContent = "Click this box to continue...";
+        return;
+      }
+      welcomeStep++;
+      if (welcomeStep < welcomeMessages.length) {
+        startTyping();
+      } else {
+        welcomeTextWrapper.style.display = "none";
+        welcomeFinal.style.display = "block";
+      }
+    });
+
+    enterBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      safePlay(sounds.menuClick);
+      startMusicOnce();
+      welcomeOverlay.classList.remove("active");
+      resetGame();
+      safePlay(sounds.start);
+    });
+
+    document.getElementById("retryBtn").addEventListener("click", () => {
+      safePlay(sounds.menuClick);
+      deathOverlay.classList.remove("active");
+      resetGame();
+    });
+
+    document.getElementById("playAgainBtn").addEventListener("click", () => {
+      safePlay(sounds.menuClick);
+      winOverlay.classList.remove("active");
+      resetGame();
+    });
+  </script>
+</body>
+</html>
