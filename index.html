@@ -276,9 +276,11 @@
     const T_THRONE = 3;
     const T_KEY = 4;
     const T_CHEST = 5;
-    const T_BATHROOM = 6;
+    const T_BATHROOM = 6;      // toilet (flush tile)
     const T_FLASHLIGHT = 7;
     const T_START = 8;
+    const T_SINK_TILE = 9;     // decorative
+    const T_BATH_TUB_TILE = 10; // decorative
 
     const world = [];
     for (let y = 0; y < WORLD_H; y++) {
@@ -325,29 +327,30 @@
       carveRect(HALL_X0, HALL_Y0, HALL_X1, HALL_Y1);
 
       // --- PLAYER WING (top-left) ---
-      // small player room
-      carveRect(3, 4, 7, 7);
-      // down corridor from player room
-      addHall(5, 7, 5, 10);
-      // horizontal corridor from that into main hall
-      addHall(5, 11, HALL_X0, 13);
+      carveRect(3, 4, 7, 7);     // small player room
+      addHall(5, 7, 5, 10);      // down corridor
+      addHall(5, 11, HALL_X0, 13); // into main hall
       world[5][5] = T_START;
 
       // --- LEFT WING vertical spine ---
-      // vertical tube that goes behind the three rooms
-      addHall(11, 10, 13, 34);
-      // short connector from main hall to left spine
-      addHall( HALL_X0, 16, 11, 18);
+      addHall(11, 10, 13, 34);     // spine
+      addHall(HALL_X0, 16, 11, 18); // connector from main hall
 
-      // LEFT ROOMS (top to bottom) – smallish
-      // Bathroom (top-left)
+      // LEFT ROOMS (top to bottom)
+
+      // Bathroom (top-left) room rectangle
       carveRect(5, 10, 10, 15, T_FLOOR, bathroomTiles);
+      // EXACT bathroom fixtures: 1 toilet, 1 sink, 1 bath
+      world[12][7] = T_BATHROOM;       // toilet (flush)
+      world[11][6] = T_SINK_TILE;      // sink
+      world[13][9] = T_BATH_TUB_TILE;  // bath
+
       // Bedroom (middle-left)
       carveRect(5, 18, 10, 23, T_FLOOR, bedroomLeftTiles);
       // Armory (bottom-left)
       carveRect(5, 26, 10, 33, T_FLOOR, armoryTiles);
 
-      // small doorways from spine into rooms
+      // doorways from spine into left rooms
       addHall(10, 12, 11, 13);  // to bathroom
       addHall(10, 20, 11, 21);  // to bedroom
       addHall(10, 29, 11, 30);  // to armory
@@ -356,8 +359,7 @@
       const spineX0 = cx + 8;
       const spineX1 = spineX0 + 2;
       addHall(spineX0, 10, spineX1, 40);
-      // connector from hall to right spine
-      addHall(HALL_X1, 18, spineX0, 20);
+      addHall(HALL_X1, 18, spineX0, 20); // connector from main hall
 
       // RIGHT ROOMS (top to bottom)
       // Bedroom
@@ -377,21 +379,11 @@
 
       // --- THRONE ROOM at bottom ---
       carveRect(cx - 8, 38, cx + 8, 47, T_FLOOR, throneTiles);
-      // connect hall into throne room
-      addHall(HALL_X0, 38, HALL_X1, 40);
+      addHall(HALL_X0, 38, HALL_X1, 40); // connect hall to throne room
 
-      // throne tile roughly in center bottom
       if (throneTiles.length) {
         const t = throneTiles[Math.floor(throneTiles.length / 2)];
         world[t.y][t.x] = T_THRONE;
-      }
-
-      // Bathroom fixtures
-      for (let i = 0; i < bathroomTiles.length; i++) {
-        if (i % 3 === 0) {
-          const { x, y } = bathroomTiles[i];
-          world[y][x] = T_BATHROOM;
-        }
       }
 
       // Closets – a few only
@@ -400,10 +392,10 @@
           world[y][x] = T_CLOSET;
         }
       }
-      placeCloset(8, 20);       // left bedroom
-      placeCloset(spineX1 + 2, 19); // right kitchen area
+      placeCloset(8, 20);          // left bedroom
+      placeCloset(spineX1 + 2, 19); // kitchen area
       placeCloset(spineX1 + 2, 33); // lab
-      placeCloset(cx - 2, 22);  // middle hall
+      placeCloset(cx - 2, 22);     // middle hall
 
       // Helper for placing special tiles in rooms
       function placeInRoom(list, tileType) {
@@ -1024,11 +1016,20 @@
             }
           }
 
+          // Bathroom fixtures – exactly one of each
           if (t === T_BATHROOM) {
-            const r2 = coordRand(tx + 7, ty + 17);
-            const targetImg = r2 < 0.33 ? imgToilet : (r2 < 0.66 ? imgSink : imgBath);
-            if (targetImg.complete && targetImg.naturalWidth) {
-              ctx.drawImage(targetImg, sx, sy, TILE, TILE);
+            if (imgToilet.complete && imgToilet.naturalWidth) {
+              ctx.drawImage(imgToilet, sx, sy, TILE, TILE);
+            }
+          }
+          if (t === T_SINK_TILE) {
+            if (imgSink.complete && imgSink.naturalWidth) {
+              ctx.drawImage(imgSink, sx, sy, TILE, TILE);
+            }
+          }
+          if (t === T_BATH_TUB_TILE) {
+            if (imgBath.complete && imgBath.naturalWidth) {
+              ctx.drawImage(imgBath, sx, sy, TILE, TILE);
             }
           }
 
@@ -1170,101 +1171,3 @@
       if (!gameOver && !win && !document.getElementById("welcomeOverlay").classList.contains("active")) {
         updateMovement(dt);
         updateHoriver(dt);
-        render();
-      } else {
-        render();
-      }
-      requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
-
-    // ===== Overlays & intro =====
-    const welcomeOverlay = document.getElementById("welcomeOverlay");
-    const welcomeCard = document.getElementById("welcomeCard");
-    const welcomeTextEl = document.getElementById("welcomeText");
-    const welcomeHintEl = document.getElementById("welcomeHint");
-    const welcomeTextWrapper = document.getElementById("welcomeTextWrapper");
-    const welcomeFinal = document.getElementById("welcomeFinal");
-    const enterBtn = document.getElementById("enterBtn");
-
-    const deathOverlay = document.getElementById("deathOverlay");
-    const winOverlay = document.getElementById("winOverlay");
-
-    const welcomeMessages = [
-      "Welcome to Hubios communism party game. Your mission is to save communism Iceland, but first, you need to defeat some foes...",
-      "Now you'll enter... Horiver's lair!!!",
-      "Are you ready?"
-    ];
-    let welcomeStep = 0;
-    let typingIndex = 0;
-    let typingTimer = null;
-    let typingDone = false;
-
-    function typeNextChar() {
-      const msg = welcomeMessages[welcomeStep];
-      if (typingIndex <= msg.length) {
-        welcomeTextEl.textContent = msg.slice(0, typingIndex);
-        typingIndex++;
-      } else {
-        clearInterval(typingTimer);
-        typingTimer = null;
-        typingDone = true;
-        welcomeHintEl.textContent = "Click this box to continue...";
-      }
-    }
-
-    function startTyping() {
-      if (typingTimer) clearInterval(typingTimer);
-      typingIndex = 0;
-      typingDone = false;
-      welcomeTextEl.textContent = "";
-      welcomeHintEl.textContent = "";
-      typingTimer = setInterval(typeNextChar, 35);
-    }
-
-    startTyping();
-
-    welcomeCard.addEventListener("click", () => {
-      startMusicOnce();
-      if (!typingDone) {
-        const msg = welcomeMessages[welcomeStep];
-        clearInterval(typingTimer);
-        typingTimer = null;
-        typingDone = true;
-        typingIndex = msg.length;
-        welcomeTextEl.textContent = msg;
-        welcomeHintEl.textContent = "Click this box to continue...";
-        return;
-      }
-      welcomeStep++;
-      if (welcomeStep < welcomeMessages.length) {
-        startTyping();
-      } else {
-        welcomeTextWrapper.style.display = "none";
-        welcomeFinal.style.display = "block";
-      }
-    });
-
-    enterBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      safePlay(sounds.menuClick);
-      startMusicOnce();
-      welcomeOverlay.classList.remove("active");
-      resetGame();
-      safePlay(sounds.start);
-    });
-
-    document.getElementById("retryBtn").addEventListener("click", () => {
-      safePlay(sounds.menuClick);
-      deathOverlay.classList.remove("active");
-      resetGame();
-    });
-
-    document.getElementById("playAgainBtn").addEventListener("click", () => {
-      safePlay(sounds.menuClick);
-      winOverlay.classList.remove("active");
-      resetGame();
-    });
-  </script>
-</body>
-</html>
