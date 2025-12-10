@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Communism Party – Hóriver's Lair (Directional Sprite Prototype – 50x50)</title>
+  <title>Communism Party – Hóriver's Lair (Blueprint Layout)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     * {
@@ -173,7 +173,7 @@
   </style>
 </head>
 <body>
-  <h1>HÓRIVER’S LAIR – LEVEL 1 (50×50 CASTLE)</h1>
+  <h1>HÓRIVER’S LAIR – BLUEPRINT LEVEL</h1>
   <div id="subtitle">
     Mission: find the flashlight, key, vape and bathroom in Hóriver’s cursed mega-mansion–castle
   </div>
@@ -265,7 +265,7 @@
     const ctx = canvas.getContext("2d");
 
     const TILE = 32;
-    const WORLD_W = 50;
+    const WORLD_W = 60;
     const WORLD_H = 50;
 
     const playerSpeed = 140;
@@ -281,226 +281,140 @@
     const T_FLASHLIGHT = 7;
     const T_START = 8;
 
-    const REGION_STONE = 0;
-    const REGION_HARDWOOD = 1;
-    const REGION_CARPET_LEFT = 2;
-    const REGION_CARPET_MID = 3;
-    const REGION_CARPET_RIGHT = 4;
-
     const world = [];
-    const regionType = [];
     for (let y = 0; y < WORLD_H; y++) {
       const row = new Array(WORLD_W).fill(T_WALL);
-      const rrow = new Array(WORLD_W).fill(REGION_STONE);
       world.push(row);
-      regionType.push(rrow);
     }
 
     function inBounds(x, y) {
       return x > 0 && y > 0 && x < WORLD_W - 1 && y < WORLD_H - 1;
     }
 
-    function carveRect(x0, y0, x1, y1, tileType = T_FLOOR, region = REGION_STONE) {
-      for (let y = y0; y <= y1; y++) {
-        for (let x = x0; x <= x1; x++) {
-          if (inBounds(x, y)) {
-            world[y][x] = tileType;
-            regionType[y][x] = region;
-          }
-        }
-      }
-    }
-
-    let bedroomTiles = [];
-    let kitchenTiles = [];
-    let sideRoomTiles = [];
-    let hallwayTiles = [];
+    // room tile lists
     let bathroomTiles = [];
-    let patrolPoints = [];
+    let bedroomLeftTiles = [];
+    let bedroomRightTiles = [];
+    let armoryTiles = [];
+    let kitchenTiles = [];
+    let infirmaryTiles = [];
+    let laboratoryTiles = [];
+    let throneRoomTiles = [];
 
-    function addRoomRect(list, x0, y0, x1, y1, region = REGION_STONE) {
-      carveRect(x0, y0, x1, y1, T_FLOOR, region);
+    function carveRect(x0, y0, x1, y1, tileType = T_FLOOR, list) {
       for (let y = y0; y <= y1; y++) {
         for (let x = x0; x <= x1; x++) {
-          if (inBounds(x, y)) list.push({ x, y });
+          if (!inBounds(x, y)) continue;
+          world[y][x] = tileType;
+          if (list) list.push({ x, y });
         }
       }
-      const cx = Math.floor((x0 + x1) / 2);
-      const cy = Math.floor((y0 + y1) / 2);
-      if (inBounds(cx, cy)) patrolPoints.push({ x: cx, y: cy });
     }
 
-    // ===== NEW 50x50 LAYOUT WITH CONNECTED ROOMS =====
-    function generateMegaMansion() {
-      // clear old data
-      bedroomTiles.length = 0;
-      kitchenTiles.length = 0;
-      sideRoomTiles.length = 0;
-      hallwayTiles.length = 0;
-      bathroomTiles.length = 0;
-      patrolPoints.length = 0;
+    function addThickCorridor(x0, y0, x1, y1) {
+      carveRect(x0, y0, x1, y1, T_FLOOR, null);
+    }
 
+    // ===== Layout based on your blueprint =====
+    function generateBlueprintCastle() {
       const cx = Math.floor(WORLD_W / 2);
 
-      // --- MAIN VERTICAL HALLWAY ---
-      const hallTop = 4;
-      const hallBottom = WORLD_H - 6;
-      const hallHalfWidth = 1; // narrow hall, spooky
+      // main vertical hall
+      const HALL_X0 = cx - 1;
+      const HALL_X1 = cx + 1;
+      const HALL_Y0 = 10;
+      const HALL_Y1 = 38;
+      carveRect(HALL_X0, HALL_Y0, HALL_X1, HALL_Y1, T_FLOOR, null);
 
-      carveRect(cx - hallHalfWidth, hallTop, cx + hallHalfWidth, hallBottom, T_FLOOR, REGION_STONE);
-      for (let y = hallTop; y <= hallBottom; y++) {
-        for (let x = cx - hallHalfWidth; x <= cx + hallHalfWidth; x++) {
-          if (inBounds(x, y)) hallwayTiles.push({ x, y });
-        }
-      }
-      patrolPoints.push({ x: cx, y: hallBottom - 1 });
-      patrolPoints.push({ x: cx, y: Math.floor((hallTop + hallBottom) / 2) });
+      // PLAYER START wing (top-left)
+      carveRect(2, 2, 7, 4, T_FLOOR, null);          // small start room
+      addThickCorridor(4, 4, 4, 10);                 // vertical down
+      addThickCorridor(4, 12, HALL_X0, 14);          // horizontal into main hall
+      world[3][4] = T_START;                         // spawn tile
 
-      // start tile near bottom of hall
-      const startY = hallBottom - 1;
-      if (inBounds(cx, startY)) {
-        world[startY][cx] = T_START;
-      }
+      // LEFT WING vertical corridor
+      addThickCorridor(10, 10, 12, 34);              // vertical spine
+      addThickCorridor(10, 14, HALL_X0, 16);         // connect to main hall
 
-      // --- THRONE ROOM ABOVE THE HALL ---
-      const throneY0 = hallTop - 4;
-      const throneY1 = hallTop - 1;
-      const throneX0 = cx - 3;
-      const throneX1 = cx + 3;
-      addRoomRect(sideRoomTiles, throneX0, throneY0, throneX1, throneY1, REGION_STONE);
+      // LEFT WING ROOMS (top→bottom)
+      // Bathroom
+      carveRect(4, 8, 10, 14, T_FLOOR, bathroomTiles);
+      // Bedroom
+      carveRect(4, 16, 10, 22, T_FLOOR, bedroomLeftTiles);
+      // Armory
+      carveRect(4, 24, 10, 32, T_FLOOR, armoryTiles);
 
-      const throneY = throneY0 + 1;
-      if (inBounds(cx, throneY)) {
-        world[throneY][cx] = T_THRONE;
-      }
+      // RIGHT WING vertical corridor
+      addThickCorridor(HALL_X1, 14, 48, 16);        // from hall to right spine
+      addThickCorridor(48, 10, 50, 40);             // vertical spine
 
-      // connect throne room into hall with small corridor
-      carveRect(cx - 1, throneY1, cx + 1, hallTop, T_FLOOR, REGION_STONE);
+      // RIGHT WING ROOMS (top→bottom)
+      // Bedroom
+      carveRect(50, 8, 58, 14, T_FLOOR, bedroomRightTiles);
+      // Kitchen
+      carveRect(50, 16, 58, 22, T_FLOOR, kitchenTiles);
+      // Infirmary
+      carveRect(50, 24, 58, 30, T_FLOOR, infirmaryTiles);
+      // Laboratory
+      carveRect(50, 32, 58, 38, T_FLOOR, laboratoryTiles);
 
-      // carpet leading to throne
-      for (let y = throneY + 1; y <= Math.min(throneY + 8, hallBottom); y++) {
-        if (inBounds(cx, y)) regionType[y][cx] = REGION_CARPET_MID;
-        if (inBounds(cx - 1, y)) regionType[y][cx - 1] = REGION_CARPET_LEFT;
-        if (inBounds(cx + 1, y)) regionType[y][cx + 1] = REGION_CARPET_RIGHT;
-      }
-      if (inBounds(cx, throneY)) regionType[throneY][cx] = REGION_CARPET_MID;
-      if (inBounds(cx - 1, throneY)) regionType[throneY][cx - 1] = REGION_CARPET_LEFT;
-      if (inBounds(cx + 1, throneY)) regionType[throneY][cx + 1] = REGION_CARPET_RIGHT;
+      // THRONE ROOM at bottom
+      carveRect(20, 38, 40, 48, T_FLOOR, throneRoomTiles); // big-ish room
+      // widen a bit to feel more "boss room"
+      carveRect(18, 40, 42, 46, T_FLOOR, throneRoomTiles);
 
-      // helper to add side rooms + corridor into hallway
-      function addSideRoom(list, side, yCenter, w, h, region) {
-        const halfH = Math.floor(h / 2);
-        const y0 = yCenter - halfH;
-        const y1 = yCenter + halfH;
+      // connect hall directly into throne room
+      addThickCorridor(HALL_X0, HALL_Y1, HALL_X1, 40);
 
-        const xInnerEdgeHall = (side === -1) ? (cx - hallHalfWidth - 1) : (cx + hallHalfWidth + 1);
-        const x0 = (side === -1) ? xInnerEdgeHall - w : xInnerEdgeHall;
-        const x1 = (side === -1) ? xInnerEdgeHall - 1 : xInnerEdgeHall + w - 1;
-
-        addRoomRect(list, x0, y0, x1, y1, region);
-
-        // corridor (2–3 tiles high) from hall to room
-        const doorY0 = Math.max(y0 + 1, yCenter - 1);
-        const doorY1 = Math.min(y1 - 1, yCenter + 1);
-        if (side === -1) {
-          carveRect(cx - hallHalfWidth, doorY0, x1 + 1, doorY1, T_FLOOR, REGION_STONE);
-        } else {
-          carveRect(cx + hallHalfWidth, doorY0, x0 - 1, doorY1, T_FLOOR, REGION_STONE);
-        }
+      // throne in the middle of throne room
+      if (throneRoomTiles.length) {
+        const center = throneRoomTiles[Math.floor(throneRoomTiles.length / 2)];
+        world[center.y][center.x] = T_THRONE;
       }
 
-      const span = hallBottom - hallTop;
-      const upperBand = hallTop + Math.floor(span * 0.28);
-      const midBand   = hallTop + Math.floor(span * 0.5);
-      const lowerBand = hallTop + Math.floor(span * 0.72);
-
-      // --- BEDROOMS (HARDWOOD) ---
-      // upper pair
-      addSideRoom(bedroomTiles, -1, upperBand - 3, 8, 6, REGION_HARDWOOD);
-      addSideRoom(bedroomTiles, +1, upperBand - 3, 8, 6, REGION_HARDWOOD);
-
-      // lower pair
-      addSideRoom(bedroomTiles, -1, lowerBand + 3, 8, 6, REGION_HARDWOOD);
-      addSideRoom(bedroomTiles, +1, lowerBand + 3, 8, 6, REGION_HARDWOOD);
-
-      // --- LIVING ROOM / LOUNGE (normal big room) ---
-      addSideRoom(bedroomTiles, -1, midBand - 2, 10, 7, REGION_HARDWOOD);
-
-      // --- LIBRARY / STORAGE (stone) ---
-      addSideRoom(sideRoomTiles, +1, midBand + 2, 10, 7, REGION_STONE);
-
-      // --- KITCHEN & DINING (stone) near bottom ---
-      addSideRoom(kitchenTiles, -1, hallBottom - 5, 10, 6, REGION_STONE); // kitchen
-      addSideRoom(kitchenTiles, +1, hallBottom - 5, 10, 6, REGION_STONE); // dining
-
-      // --- BATHROOMS near top of hall ---
-      const bathYTop = hallTop + 3;
-      addSideRoom(bathroomTiles, -1, bathYTop, 6, 5, REGION_STONE);
-      addSideRoom(bathroomTiles, +1, bathYTop, 6, 5, REGION_STONE);
-
-      // mark some bathroom tiles as fixtures
+      // bathroom fixtures (some of the bathroom tiles -> special bathroom tiles)
       for (let i = 0; i < bathroomTiles.length; i++) {
-        const t = bathroomTiles[i];
-        if (i % 2 === 0 && inBounds(t.x, t.y)) {
-          world[t.y][t.x] = T_BATHROOM;
+        if (i % 3 === 0) {
+          const { x, y } = bathroomTiles[i];
+          world[y][x] = T_BATHROOM;
         }
       }
 
-      // --- FEWER CLOSETS ---
+      // closets: small number, mostly near bedrooms / junctions
       function placeCloset(x, y) {
         if (inBounds(x, y) && world[y][x] === T_FLOOR) {
           world[y][x] = T_CLOSET;
         }
       }
+      // near left bedroom
+      placeCloset(8, 18);
+      // near right bedroom
+      placeCloset(52, 10);
+      // near lab
+      placeCloset(52, 34);
+      // intersection near main hall center
+      placeCloset(cx - 2, 20);
 
-      // a couple along the hall
-      placeCloset(cx - 2, midBand);
-      placeCloset(cx + 2, lowerBand);
-      placeCloset(cx - 2, hallBottom - 3);
-
-      // a few closets in bedrooms only – spaced out
-      let closetPlaced = 0;
-      const maxBedroomClosets = 4;
-      const step = Math.max(1, Math.floor(bedroomTiles.length / maxBedroomClosets));
-      for (let i = Math.floor(step / 2); i < bedroomTiles.length && closetPlaced < maxBedroomClosets; i += step) {
-        const t = bedroomTiles[i];
-        if (inBounds(t.x, t.y) && world[t.y][t.x] === T_FLOOR) {
-          world[t.y][t.x] = T_CLOSET;
-          closetPlaced++;
-        }
+      // helper for placing single special tiles in room lists
+      function placeInRoom(list, tileType) {
+        if (!list.length) return;
+        const t = list[Math.floor(list.length / 2)];
+        if (inBounds(t.x, t.y)) world[t.y][t.x] = tileType;
       }
 
-      // --- CHESTS (vape) in interesting rooms ---
-      const chestCandidates = bedroomTiles.concat(sideRoomTiles, kitchenTiles);
-      let chestPlaced = 0;
-      const maxChests = 6;
-      const chestStep = Math.max(1, Math.floor(chestCandidates.length / (maxChests * 2)));
-      for (let i = 0; i < chestCandidates.length && chestPlaced < maxChests; i += chestStep) {
-        const t = chestCandidates[i];
-        if (inBounds(t.x, t.y) && world[t.y][t.x] === T_FLOOR) {
-          world[t.y][t.x] = T_CHEST;
-          chestPlaced++;
-        }
-      }
+      // Flashlight in one of the bedrooms (left)
+      placeInRoom(bedroomLeftTiles, T_FLASHLIGHT);
 
-      // --- FLASHLIGHT in a random bedroom ---
-      function pickRandom(list) {
-        return list[Math.floor(Math.random() * list.length)];
-      }
-      if (bedroomTiles.length) {
-        const f = pickRandom(bedroomTiles);
-        if (inBounds(f.x, f.y)) world[f.y][f.x] = T_FLASHLIGHT;
-      }
+      // Key in the kitchen
+      placeInRoom(kitchenTiles, T_KEY);
 
-      // --- KEY in a kitchen tile (or side room as backup) ---
-      const keyList = kitchenTiles.length ? kitchenTiles : sideRoomTiles;
-      if (keyList.length) {
-        const k = pickRandom(keyList);
-        if (inBounds(k.x, k.y)) world[k.y][k.x] = T_KEY;
-      }
+      // Chests (vape spots) – armory + lab + a bedroom
+      placeInRoom(armoryTiles, T_CHEST);
+      placeInRoom(laboratoryTiles, T_CHEST);
+      placeInRoom(bedroomRightTiles, T_CHEST);
     }
 
-    generateMegaMansion();
+    generateBlueprintCastle();
 
     function tileAt(tx, ty) {
       if (tx < 0 || ty < 0 || tx >= WORLD_W || ty >= WORLD_H) return T_WALL;
@@ -537,13 +451,16 @@
     const imgFlashlight = makeImage("pixel-flashlight.png");
     const imgKey = makeImage("key pixel.png");
     const imgVape = makeImage("vape pixel.png");
-    const imgFurniture = makeImage("furniture.png");
-    const imgTileset = makeImage("dungeons pack.png");
     const imgThrone = makeImage("throne.png");
     const imgCloset = makeImage("closet.png");
     const imgBath = makeImage("bath.png");
     const imgToilet = makeImage("toilet.png");
     const imgSink = makeImage("sink.png");
+
+    // NEW wall & floor textures
+    const imgCobble = makeImage("cobble.png");
+    const imgCobbleCracked = makeImage("cobble-cracked.png");
+    const imgCobbleDark = makeImage("cobble-dark.png");
 
     const imgHUDFlashlight = imgFlashlight;
     const imgHUDKey = imgKey;
@@ -644,13 +561,13 @@
     }
 
     function resetGame() {
-      const startTile = findTile(T_START) || { x: Math.floor(WORLD_W / 2), y: WORLD_H - 6 };
+      const startTile = findTile(T_START) || { x: 4, y: 3 };
       player.x = (startTile.x + 0.5) * TILE;
       player.y = (startTile.y + 0.5) * TILE;
       player.vx = player.vy = 0;
       playerFacing = "down";
 
-      const throneTile = findTile(T_THRONE) || { x: Math.floor(WORLD_W / 2), y: 6 };
+      const throneTile = findTile(T_THRONE) || { x: Math.floor(WORLD_W / 2), y: WORLD_H - 8 };
       horiver.x = (throneTile.x + 0.5) * TILE;
       horiver.y = (throneTile.y + 0.5) * TILE;
       horiver.vx = horiver.vy = 0;
@@ -989,20 +906,22 @@
       let speed = base;
 
       if (horiver.state === "patrol") {
-        if (!patrolPoints.length) {
-          targetX = player.x;
-          targetY = player.y;
-          speed = base * 0.7;
-        } else {
-          const p = patrolPoints[horiver.patrolIndex % patrolPoints.length];
-          targetX = (p.x + 0.5) * TILE;
-          targetY = (p.y + 0.5) * TILE;
-          speed = base * 0.6;
-          const dpx = targetX - horiver.x;
-          const dpy = targetY - horiver.y;
-          if (Math.hypot(dpx, dpy) < 10) {
-            horiver.patrolIndex = (horiver.patrolIndex + 1) % patrolPoints.length;
-          }
+        // patrol between some main points: start hall & throne area & right wing
+        const patrolPoints = [
+          { x: 30, y: 20 },
+          { x: 30, y: 36 },
+          { x: 49, y: 22 },
+          { x: 11, y: 22 }
+        ];
+        const idx = horiver.patrolIndex % patrolPoints.length;
+        const p = patrolPoints[idx];
+        targetX = (p.x + 0.5) * TILE;
+        targetY = (p.y + 0.5) * TILE;
+        speed = base * 0.6;
+        const dpx = targetX - horiver.x;
+        const dpy = targetY - horiver.y;
+        if (Math.hypot(dpx, dpy) < 10) {
+          horiver.patrolIndex = (horiver.patrolIndex + 1) % patrolPoints.length;
         }
       } else if (horiver.state === "chase") {
         targetX = player.x;
@@ -1063,15 +982,6 @@
       return { x: camX, y: camY };
     }
 
-    function drawTilesetTile(img, tileX, tileY, dx, dy) {
-      if (!img.complete || !img.naturalWidth) {
-        return;
-      }
-      const sx = (tileX - 1) * 32;
-      const sy = (tileY - 1) * 32;
-      ctx.drawImage(img, sx, sy, 32, 32, dx, dy, TILE, TILE);
-    }
-
     function render() {
       const cam = getCamera();
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1086,60 +996,28 @@
           const t = tileAt(tx, ty);
           const sx = tx * TILE - cam.x;
           const sy = ty * TILE - cam.y;
-          const reg = (ty >= 0 && ty < WORLD_H && tx >= 0 && tx < WORLD_W)
-            ? regionType[ty][tx]
-            : REGION_STONE;
 
-          // --- WALLS: very visible ---
           if (t === T_WALL) {
-            ctx.fillStyle = "#2b1414";
-            ctx.fillRect(sx, sy, TILE, TILE);
-            ctx.strokeStyle = "#6e3434";
-            ctx.strokeRect(sx + 0.5, sy + 0.5, TILE - 1, TILE - 1);
-            drawTilesetTile(imgTileset, 13, 1, sx, sy);
-          } else {
-            // --- FLOORS: by region ---
-            if (reg === REGION_HARDWOOD) {
-              ctx.fillStyle = "#2b2014";
-              ctx.fillRect(sx, sy, TILE, TILE);
-              ctx.strokeStyle = "#433023";
-              ctx.strokeRect(sx + 0.4, sy + 0.4, TILE - 0.8, TILE - 0.8);
-              drawTilesetTile(imgFurniture, 25, 19, sx, sy);
-            } else if (
-              reg === REGION_CARPET_LEFT ||
-              reg === REGION_CARPET_MID ||
-              reg === REGION_CARPET_RIGHT
-            ) {
-              ctx.fillStyle = "#301019";
-              ctx.fillRect(sx, sy, TILE, TILE);
-              ctx.strokeStyle = "#4d1b28";
-              ctx.strokeRect(sx + 0.4, sy + 0.4, TILE - 0.8, TILE - 0.8);
-              if (reg === REGION_CARPET_LEFT) {
-                drawTilesetTile(imgFurniture, 24, 6, sx, sy);
-              } else if (reg === REGION_CARPET_MID) {
-                drawTilesetTile(imgFurniture, 25, 6, sx, sy);
-              } else {
-                drawTilesetTile(imgFurniture, 26, 6, sx, sy);
-              }
+            // WALLS: cobble-dark
+            if (imgCobbleDark.complete && imgCobbleDark.naturalWidth) {
+              ctx.drawImage(imgCobbleDark, sx, sy, TILE, TILE);
             } else {
-              ctx.fillStyle = "#15151b";
+              ctx.fillStyle = "#221014";
               ctx.fillRect(sx, sy, TILE, TILE);
-              ctx.strokeStyle = "#252530";
-              ctx.strokeRect(sx + 0.4, sy + 0.4, TILE - 0.8, TILE - 0.8);
-
-              const r = coordRand(tx, ty);
-              if (r < 0.33) drawTilesetTile(imgTileset, 18, 11, sx, sy);
-              else if (r < 0.66) drawTilesetTile(imgTileset, 19, 11, sx, sy);
-              else drawTilesetTile(imgTileset, 12, 11, sx, sy);
-
-              if (r > 0.78 && r < 0.92) {
-                const defectX = 1 + Math.floor(coordRand(tx + 99, ty + 13) * 8);
-                drawTilesetTile(imgTileset, defectX, 4, sx, sy);
-              }
+            }
+          } else {
+            // FLOORS: cobble + cracked mix
+            const r = coordRand(tx, ty);
+            const baseImg = (r < 0.75) ? imgCobble : imgCobbleCracked;
+            if (baseImg.complete && baseImg.naturalWidth) {
+              ctx.drawImage(baseImg, sx, sy, TILE, TILE);
+            } else {
+              ctx.fillStyle = "#202028";
+              ctx.fillRect(sx, sy, TILE, TILE);
             }
           }
 
-          // Throne
+          // Throne overlay
           if (t === T_THRONE) {
             if (imgThrone.complete && imgThrone.naturalWidth) {
               ctx.drawImage(imgThrone, sx, sy - TILE / 2, TILE, TILE * 1.5);
@@ -1149,11 +1027,10 @@
             }
           }
 
-          // Bathrooms
+          // Bathrooms: toilet / sink / bath
           if (t === T_BATHROOM) {
             const r2 = coordRand(tx + 7, ty + 17);
-            const targetImg =
-              r2 < 0.33 ? imgToilet : (r2 < 0.66 ? imgSink : imgBath);
+            const targetImg = r2 < 0.33 ? imgToilet : (r2 < 0.66 ? imgSink : imgBath);
             if (targetImg.complete && targetImg.naturalWidth) {
               ctx.drawImage(targetImg, sx, sy, TILE, TILE);
             }
@@ -1189,7 +1066,7 @@
         }
       }
 
-      // items
+      // items (flashlight, key, vape at chests)
       for (let ty = startTY; ty <= endTY; ty++) {
         for (let tx = startTX; tx <= endTX; tx++) {
           const t = tileAt(tx, ty);
