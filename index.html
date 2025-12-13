@@ -2,84 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Communism Party – Hóriver's Lair (Final Layout)</title>
+  <title>Communism Party – Hóriver's Lair (50x50 Blueprint)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { background: #050104; color: #f7e3c8; overflow: hidden; }
+    h1 { margin-top: 10px; text-align: center; letter-spacing: 0.18em; text-transform: uppercase; font-size: 18px; color: #ffdd88; }
+    #subtitle { text-align: center; font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; margin-top: 4px; color: #ffbb66; }
+    #game-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; height: calc(100vh - 90px); }
+    canvas { border: 2px solid #ffcc66; background: #000; image-rendering: pixelated; box-shadow: 0 20px 50px rgba(0,0,0,0.9); }
+    #controls { margin-top: 8px; font-size: 13px; opacity: 0.9; color: #ffe6bf; text-align: center; }
+    #interactionPrompt { margin-top: 4px; font-size: 13px; text-align: center; color: #ffdd88; min-height: 18px; }
 
-    body {
-      background: #050104;
-      color: #f7e3c8;
-      overflow: hidden;
-    }
-
-    h1 {
-      margin-top: 10px;
-      text-align: center;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      font-size: 18px;
-      color: #ffdd88;
-    }
-
-    #subtitle {
-      text-align: center;
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      margin-top: 4px;
-      color: #ffbb66;
-    }
-
-    #game-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: calc(100vh - 90px);
-    }
-
-    canvas {
-      border: 2px solid #ffcc66;
-      background: #000;
-      image-rendering: pixelated;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
-    }
-
-    #controls {
-      margin-top: 8px;
-      font-size: 13px;
-      opacity: 0.9;
-      color: #ffe6bf;
-      text-align: center;
-    }
-
-    #interactionPrompt {
-      margin-top: 4px;
-      font-size: 13px;
-      text-align: center;
-      color: #ffdd88;
-      min-height: 18px;
-    }
-
-    .overlay {
-      position: fixed;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0, 0, 0, 0.88);
-      z-index: 40;
-    }
-    .overlay.active {
-      display: flex;
-    }
-
+    .overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.88); z-index: 40; }
+    .overlay.active { display: flex; }
     .overlay-card {
       border-radius: 1.4rem;
       border: 2px solid #ffcc66;
@@ -88,49 +24,15 @@
       max-width: 480px;
       text-align: center;
       color: #ffe6bf;
-      box-shadow: 0 26px 70px rgba(0, 0, 0, 0.9);
+      box-shadow: 0 26px 70px rgba(0,0,0,0.9);
     }
+    .overlay-card img { max-width: 260px; image-rendering: pixelated; border-radius: 0.7rem; margin-bottom: 0.9rem; }
+    .overlay-title { font-size: 1.4rem; letter-spacing: 0.16em; text-transform: uppercase; color: #ffdd88; margin-bottom: 0.5rem; }
+    .overlay-sub { font-size: 0.92rem; margin-bottom: 1.1rem; }
 
-    .overlay-card img {
-      max-width: 260px;
-      image-rendering: pixelated;
-      border-radius: 0.7rem;
-      margin-bottom: 0.9rem;
-    }
-
-    .overlay-title {
-      font-size: 1.4rem;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: #ffdd88;
-      margin-bottom: 0.5rem;
-    }
-
-    .overlay-sub {
-      font-size: 0.92rem;
-      margin-bottom: 1.1rem;
-    }
-
-    .btn {
-      cursor: pointer;
-      border-radius: 999px;
-      padding: 0.6rem 1.5rem;
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      border: none;
-      margin: 0 0.4rem;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #ffcc66, #ff4848);
-      color: #3b0000;
-      font-weight: 800;
-      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.7);
-    }
-    .btn-primary:hover {
-      filter: brightness(1.06);
-    }
+    .btn { cursor: pointer; border-radius: 999px; padding: 0.6rem 1.5rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.12em; border: none; margin: 0 0.4rem; }
+    .btn-primary { background: linear-gradient(135deg, #ffcc66, #ff4848); color: #3b0000; font-weight: 800; box-shadow: 0 14px 28px rgba(0,0,0,0.7); }
+    .btn-primary:hover { filter: brightness(1.06); }
 
     #alertBanner {
       position: fixed;
@@ -140,7 +42,7 @@
       padding: 0.5rem 1.1rem;
       border-radius: 999px;
       border: 1px solid #ff4444;
-      background: rgba(60, 0, 0, 0.93);
+      background: rgba(60,0,0,0.93);
       color: #ffdddd;
       font-size: 0.82rem;
       letter-spacing: 0.16em;
@@ -148,35 +50,21 @@
       text-align: center;
       display: none;
       z-index: 25;
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.8);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.8);
     }
 
-    #welcomeOverlay img {
-      max-width: 280px;
-    }
-
-    #welcomeHint {
-      margin-top: 0.8rem;
-      font-size: 0.8rem;
-      opacity: 0.7;
-    }
+    #welcomeOverlay img { max-width: 280px; }
+    #welcomeHint { margin-top: 0.8rem; font-size: 0.8rem; opacity: 0.7; }
 
     @media (max-width: 900px) {
-      #game-wrapper {
-        transform: scale(0.85);
-      }
-      .overlay-card {
-        margin: 0 1rem;
-        padding-inline: 1.4rem;
-      }
+      #game-wrapper { transform: scale(0.85); }
+      .overlay-card { margin: 0 1rem; padding-inline: 1.4rem; }
     }
   </style>
 </head>
 <body>
-  <h1>HÓRIVER’S LAIR – FINAL BLUEPRINT</h1>
-  <div id="subtitle">
-    Mission: find the flashlight, key, vape and bathroom in Hóriver’s cursed mega-mansion–castle
-  </div>
+  <h1>HÓRIVER’S LAIR – 50×50 BLUEPRINT</h1>
+  <div id="subtitle">Mission: find the flashlight, key, vape and bathroom in Hóriver’s cursed mega-mansion–castle</div>
 
   <div id="game-wrapper">
     <canvas id="game" width="800" height="600"></canvas>
@@ -189,7 +77,7 @@
 
   <div id="alertBanner">HÓRIVER HEARS YOU</div>
 
-  <!-- WELCOME OVERLAY WITH TYPEWRITER -->
+  <!-- Welcome -->
   <div id="welcomeOverlay" class="overlay active">
     <div class="overlay-card" id="welcomeCard">
       <div id="welcomeTextWrapper">
@@ -206,26 +94,22 @@
     </div>
   </div>
 
-  <!-- Death overlay -->
+  <!-- Death -->
   <div id="deathOverlay" class="overlay">
     <div class="overlay-card">
       <img src="images/horiver-jumpscare.png" alt="Horiver Jumpscare" />
       <div class="overlay-title" style="color:#ff5555;">WASTED</div>
-      <div class="overlay-sub">
-        Hóriver caught you in the fog. The castle reeks of vape forever.
-      </div>
+      <div class="overlay-sub">Hóriver caught you in the fog. The castle reeks of vape forever.</div>
       <button class="btn btn-primary" id="retryBtn">Retry Level</button>
     </div>
   </div>
 
-  <!-- Win overlay -->
+  <!-- Win -->
   <div id="winOverlay" class="overlay">
     <div class="overlay-card">
       <img src="images/bhoriver-token.png" alt="Token" />
       <div class="overlay-title">MISSION COMPLETE</div>
-      <div class="overlay-sub">
-        The vape is flushed. Hóriver screams and dissolves into communist vapor. You claim your cursed token.
-      </div>
+      <div class="overlay-sub">The vape is flushed. Hóriver screams and dissolves into communist vapor. You claim your cursed token.</div>
       <button class="btn btn-primary" id="playAgainBtn">Play Again</button>
     </div>
   </div>
@@ -237,22 +121,15 @@
       img.src = "images/" + encodeURIComponent(name);
       return img;
     }
-
     function makeSound(name, loop = false, volume = 1) {
       const a = new Audio("sounds/" + encodeURIComponent(name));
       a.loop = loop;
       a.volume = volume;
       return a;
     }
-
     function safePlay(a) {
-      try {
-        a.currentTime = 0;
-        a.play().catch(() => {});
-      } catch (e) {}
+      try { a.currentTime = 0; a.play().catch(() => {}); } catch (e) {}
     }
-
-    // deterministic random from coords
     function coordRand(x, y, seed = 1337) {
       let n = x * 374761393 + y * 668265263 + seed * 1442695040888963407;
       n = (n ^ (n >> 13)) * 1274126177;
@@ -271,18 +148,21 @@
     const playerSpeed = 140;
     const horiverBaseSpeed = 90;
 
-    // tile types
-    const T_WALL           = 1;
+    // tiles
     const T_FLOOR          = 0;
+    const T_WALL           = 1;
+
     const T_CLOSET         = 2;
     const T_THRONE         = 3;
     const T_KEY            = 4;
     const T_CHEST          = 5;
-    const T_BATHROOM       = 6;  // toilet (flush tile)
+    const T_TOILET_FLUSH   = 6;  // used for flushing interaction
     const T_FLASHLIGHT     = 7;
     const T_START          = 8;
-    const T_SINK_TILE      = 9;  // visual sink
-    const T_BATH_TUB_TILE  = 10; // visual bath
+
+    const T_SINK_TILE      = 9;
+    const T_BATH_TILE      = 10;
+
     const T_BED            = 11;
     const T_TABLE          = 12;
     const T_CHAIR          = 13;
@@ -293,169 +173,125 @@
     const T_ARMOR_STAND    = 18;
 
     const world = [];
-    for (let y = 0; y < WORLD_H; y++) {
-      const row = new Array(WORLD_W).fill(T_WALL);
-      world.push(row);
-    }
+    for (let y = 0; y < WORLD_H; y++) world.push(new Array(WORLD_W).fill(T_WALL));
 
-    function inBounds(x, y) {
-      return x > 0 && y > 0 && x < WORLD_W - 1 && y < WORLD_H - 1;
+    function inBounds(x, y) { return x > 0 && y > 0 && x < WORLD_W - 1 && y < WORLD_H - 1; }
+    function carveRect(x0, y0, x1, y1, type = T_FLOOR) {
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++)
+        if (inBounds(x, y)) world[y][x] = type;
     }
-
-    function carveRect(x0, y0, x1, y1, tileType = T_FLOOR) {
-      for (let y = y0; y <= y1; y++) {
-        for (let x = x0; x <= x1; x++) {
-          if (!inBounds(x, y)) continue;
-          world[y][x] = tileType;
-        }
-      }
-    }
-
-    function addHall(x0, y0, x1, y1) {
-      carveRect(x0, y0, x1, y1, T_FLOOR);
-    }
+    function addHall(x0, y0, x1, y1) { carveRect(x0, y0, x1, y1, T_FLOOR); }
 
     function generateBlueprintLayout() {
-      const cx = Math.floor(WORLD_W / 2); // center column
+      const cx = Math.floor(WORLD_W / 2); // 25
+      const HALL_X0 = cx - 1;             // 24
+      const HALL_X1 = cx + 1;             // 26
 
-      // --- MAIN VERTICAL HALL ---
-      const HALL_X0 = cx - 1;  // 24
-      const HALL_X1 = cx + 1;  // 26
-      const HALL_Y0 = 10;
-      const HALL_Y1 = 38;
-      carveRect(HALL_X0, HALL_Y0, HALL_X1, HALL_Y1);
+      // main hall
+      carveRect(HALL_X0, 10, HALL_X1, 38);
 
-      // --- PLAYER ROOM (top-left) ---
-      carveRect(3, 4, 7, 7);          // room
-      addHall(5, 7, 5, 10);           // down corridor
-      addHall(5, 11, HALL_X0, 13);    // into main hall
-      world[5][5] = T_START;          // spawn tile
+      // PLAYER ROOM
+      carveRect(3, 4, 7, 7);
+      addHall(5, 7, 5, 10);
+      addHall(5, 11, HALL_X0, 13);
+      world[5][5] = T_START;
 
-      // --- LEFT WING vertical spine ---
-      addHall(11, 10, 13, 34);        // vertical tube
-      addHall(HALL_X0, 16, 11, 18);   // connector from hall
+      // LEFT SPINE
+      addHall(11, 10, 13, 34);
+      addHall(HALL_X0, 16, 11, 18);
 
-      // --- SECOND LEFT BEDROOM (UPPER LEFT) ---
-      // bounds: x = 5–10, y = 10–15
+      // SECOND LEFT BEDROOM (upper-left) bounds: x 5–10, y 10–15
       carveRect(5, 10, 10, 15);
-      // two beds on far left middle
+      // two beds far left middle (spaced so 2× doesn't overlap)
       world[12][5] = T_BED;
-      world[13][5] = T_BED;
-      // table in middle with chair left
-      world[12][7] = T_TABLE;
-      world[12][6] = T_CHAIR;
+      world[14][5] = T_BED;
+      // table near middle, chair left
+      world[11][7] = T_TABLE;
+      world[11][6] = T_CHAIR;
 
-      // --- LEFT BEDROOM (MIDDLE LEFT) ---
-      // bounds: x = 5–10, y = 18–23
+      // LEFT BEDROOM bounds: x 5–10, y 18–23
       carveRect(5, 18, 10, 23);
-      // bed bottom-left corner
-      world[23][5] = T_BED;
-      // table near top middle
-      world[18][7] = T_TABLE;
-      // chair to the right of table
-      world[18][8] = T_CHAIR;
-      // closet top-right
-      world[18][10] = T_CLOSET;
-      // flashlight somewhere near bed
+      world[23][5] = T_BED;       // bed bottom-left
+      world[18][7] = T_TABLE;     // table
+      world[18][8] = T_CHAIR;     // chair right of table
+      world[18][10] = T_CLOSET;   // closet top-right
       world[22][6] = T_FLASHLIGHT;
 
-      // --- ARMORY (BOTTOM LEFT) ---
-      // bounds: x = 5–10, y = 26–33
+      // ARMORY bounds: x 5–10, y 26–33
       carveRect(5, 26, 10, 33);
-      // weapons rack: one tile right of top-left
       world[26][6] = T_WEAPON_RACK;
-      // armor stand: +1x, +1y
       world[27][7] = T_ARMOR_STAND;
-      // table in middle with chairs
       world[29][8] = T_TABLE;
-      world[29][7] = T_CHAIR; // left of table
-      world[28][8] = T_CHAIR; // above table
-      // stove top-right corner
+      world[29][7] = T_CHAIR;
+      world[28][8] = T_CHAIR;
       world[26][10] = T_STOVE;
-      // chest (vape) in lower middle
       world[31][8] = T_CHEST;
 
-      // doorways from left spine to left rooms
-      addHall(10, 12, 11, 13);  // to upper bedroom
-      addHall(10, 20, 11, 21);  // to mid bedroom
-      addHall(10, 29, 11, 30);  // to armory
+      // doorways (left spine)
+      addHall(10, 12, 11, 13);
+      addHall(10, 20, 11, 21);
+      addHall(10, 29, 11, 30);
 
-      // --- RIGHT WING vertical spine ---
-      const spineX0 = cx + 8;       // 33
-      const spineX1 = spineX0 + 2;  // 35
+      // RIGHT SPINE
+      const spineX0 = cx + 8;     // 33
+      const spineX1 = spineX0 + 2;// 35
       addHall(spineX0, 10, spineX1, 40);
-      addHall(HALL_X1, 18, spineX0, 20); // connector hall -> spine
+      addHall(HALL_X1, 18, spineX0, 20);
 
-      // --- BATHROOM (TOP RIGHT, swapped with old right bedroom) ---
-      // bounds: x = 36–42, y = 10–15
-      carveRect(spineX1 + 1, 10, spineX1 + 7, 15);
-      // toilet top-left corner
-      world[10][36] = T_BATHROOM;
-      // sink two tiles to the right
+      // BATHROOM (swapped to top-right) bounds: x 36–42, y 10–15
+      carveRect(36, 10, 42, 15);
+      // toilet top-left, sink 2 right, bath bottom-left
+      world[10][36] = T_TOILET_FLUSH;
       world[10][38] = T_SINK_TILE;
-      // bath bottom-left corner
-      world[15][36] = T_BATH_TUB_TILE;
+      world[15][36] = T_BATH_TILE;
 
-      // --- KITCHEN ---
-      // bounds: x = 36–42, y = 17–22
-      carveRect(spineX1 + 1, 17, spineX1 + 7, 22);
-      // two stoves side-by-side at top-middle
-      world[17][38] = T_STOVE;
-      world[17][39] = T_STOVE;
-      // three tables in middle row
+      // KITCHEN bounds: x 36–42, y 17–22
+      carveRect(36, 17, 42, 22);
+      // stoves top-middle (moved up one so 3× sprite doesn't overlap tables)
+      world[16][38] = T_STOVE;
+      world[16][39] = T_STOVE;
+      // 3 tables middle horizontal
       world[19][38] = T_TABLE;
       world[19][39] = T_TABLE;
       world[19][40] = T_TABLE;
-      // closet on right-middle
+      // closet right-middle
       world[19][42] = T_CLOSET;
-      // key somewhere free
+      // key
       world[21][37] = T_KEY;
 
-      // --- INFIRMARY ---
-      // bounds: x = 36–42, y = 24–29
-      carveRect(spineX1 + 1, 24, spineX1 + 7, 29);
-      // three medical beds middle-left
+      // INFIRMARY bounds: x 36–42, y 24–29
+      carveRect(36, 24, 42, 29);
+      // 3 med beds left-middle (spaced for 2×)
       world[26][36] = T_MED_BED;
-      world[27][36] = T_MED_BED;
       world[28][36] = T_MED_BED;
-      // two med shelves near top-right (one tile left of top-right corner)
+      world[30][36] = T_MED_BED; // yes it extends past y=29 visually, but anchor stays inside
+      // 2 med shelves one tile left from top-right (spaced)
       world[24][41] = T_MED_SHELF;
-      world[25][41] = T_MED_SHELF;
-      // two tables in middle
+      world[26][41] = T_MED_SHELF;
+      // 2 tables in middle
       world[27][38] = T_TABLE;
       world[27][39] = T_TABLE;
 
-      // --- LABORATORY ---
-      // bounds: x = 36–42, y = 31–36
-      carveRect(spineX1 + 1, 31, spineX1 + 7, 36);
-      // closet in top-right
-      world[31][42] = T_CLOSET;
-      // lab shelf top-middle
-      world[31][39] = T_MED_SHELF;
-      // chair top-left
-      world[31][36] = T_CHAIR;
-      // table in the middle
-      world[33][39] = T_TABLE;
-      // chest (vape source) near the table
-      world[33][40] = T_CHEST;
+      // LAB bounds: x 36–42, y 31–36
+      carveRect(36, 31, 42, 36);
+      world[31][42] = T_CLOSET;      // top-right closet
+      world[31][39] = T_MED_SHELF;   // top-middle lab shelf
+      world[33][39] = T_TABLE;       // middle table
+      world[31][36] = T_CHAIR;       // top-left chair
+      world[33][40] = T_CHEST;       // extra chest
 
-      // doorways from spine to right rooms
-      addHall(spineX0, 12, spineX1, 13); // to bathroom
-      addHall(spineX0, 19, spineX1, 20); // to kitchen
-      addHall(spineX0, 26, spineX1, 27); // to infirmary
-      addHall(spineX0, 33, spineX1, 34); // to lab
+      // doorways (right spine)
+      addHall(spineX0, 12, spineX1, 13); // bathroom
+      addHall(spineX0, 19, spineX1, 20); // kitchen
+      addHall(spineX0, 26, spineX1, 27); // infirmary
+      addHall(spineX0, 33, spineX1, 34); // lab
 
-      // --- THRONE ROOM at bottom ---
-      // bounds: x = 17–33, y = 38–47
+      // THRONE ROOM bounds: x 17–33, y 38–47
       carveRect(cx - 8, 38, cx + 8, 47);
-      // connect hall into throne room
-      addHall(HALL_X0, 38, HALL_X1, 40);
-      // throne at middle-left
-      world[43][17] = T_THRONE;
-      // stove in top-right corner of throne room
-      world[38][33] = T_STOVE;
-      // ranged tables in middle of room (horizontal)
-      world[43][24] = T_TABLE;
+      addHall(HALL_X0, 38, HALL_X1, 40); // connect hall to throne room
+      world[43][17] = T_THRONE;   // throne middle-left
+      world[38][33] = T_STOVE;    // stove top-right
+      world[43][24] = T_TABLE;    // ranged tables mid
       world[43][25] = T_TABLE;
       world[43][26] = T_TABLE;
     }
@@ -466,29 +302,21 @@
       if (tx < 0 || ty < 0 || tx >= WORLD_W || ty >= WORLD_H) return T_WALL;
       return world[ty][tx];
     }
-
-    function isWalkable(tx, ty) {
-      const t = tileAt(tx, ty);
-      return t !== T_WALL;
-    }
-
+    function isWalkable(tx, ty) { return tileAt(tx, ty) !== T_WALL; }
     function findTile(type) {
-      for (let y = 0; y < WORLD_H; y++) {
-        for (let x = 0; x < WORLD_W; x++) {
-          if (world[y][x] === type) return { x, y };
-        }
-      }
+      for (let y = 0; y < WORLD_H; y++) for (let x = 0; x < WORLD_W; x++)
+        if (world[y][x] === type) return { x, y };
       return null;
     }
 
     // ===== Assets =====
-    // Player directional sprites:
+    // player directional
     const imgPlayerLeft  = makeImage("player.png");
     const imgPlayerRight = makeImage("player-right.png");
     const imgPlayerUp    = makeImage("player-up.png");
     const imgPlayerDown  = makeImage("player-down.png");
 
-    // Horiver directional sprites:
+    // horiver directional
     const imgHoriverLeft  = makeImage("horiver-character.png");
     const imgHoriverRight = makeImage("horiver-right.png");
     const imgHoriverUp    = makeImage("horiver-up.png");
@@ -499,14 +327,18 @@
     const imgKey        = makeImage("key pixel.png");
     const imgVape       = makeImage("vape pixel.png");
 
-    // fixtures
-    const imgThrone  = makeImage("throne.png");
-    const imgCloset  = makeImage("closet.png");
-    const imgBath    = makeImage("bath.png");
-    const imgToilet  = makeImage("toilet.png");
-    const imgSink    = makeImage("sink.png");
+    // world textures
+    const imgCobble        = makeImage("cobble.png");
+    const imgCobbleCracked = makeImage("cobble-cracked.png");
+    const imgCobbleDark    = makeImage("cobble-dark.png");
 
-    // new furniture / props
+    // fixtures / furniture
+    const imgThrone    = makeImage("throne.png");
+    const imgCloset    = makeImage("closet.png");
+    const imgBath      = makeImage("bath.png");
+    const imgToilet    = makeImage("toilet.png");
+    const imgSink      = makeImage("sink.png");
+
     const imgBed        = makeImage("bed.png");
     const imgMedBed     = makeImage("med-bed.png");
     const imgTable      = makeImage("table.png");
@@ -515,11 +347,6 @@
     const imgWeaponRack = makeImage("weapon-rack.png");
     const imgArmorStand = makeImage("armor-stand.png");
     const imgMedShelf   = makeImage("med-shelf.png");
-
-    // cobble textures
-    const imgCobble        = makeImage("cobble.png");
-    const imgCobbleCracked = makeImage("cobble-cracked.png");
-    const imgCobbleDark    = makeImage("cobble-dark.png");
 
     const imgHUDFlashlight = imgFlashlight;
     const imgHUDKey        = imgKey;
@@ -542,38 +369,23 @@
 
     let musicStarted = false;
     function startMusicOnce() {
-      if (!musicStarted) {
-        musicStarted = true;
-        safePlay(sounds.bgm);
-      }
+      if (!musicStarted) { musicStarted = true; safePlay(sounds.bgm); }
     }
 
     let footstepsPlaying = false;
     function playFootsteps() {
-      if (!footstepsPlaying) {
-        sounds.footsteps.play().catch(() => {});
-        footstepsPlaying = true;
-      }
+      if (!footstepsPlaying) { sounds.footsteps.play().catch(()=>{}); footstepsPlaying = true; }
     }
     function stopFootsteps() {
-      if (footstepsPlaying) {
-        sounds.footsteps.pause();
-        footstepsPlaying = false;
-      }
+      if (footstepsPlaying) { sounds.footsteps.pause(); footstepsPlaying = false; }
     }
 
     let heartbeatPlaying = false;
     function playHeartbeat() {
-      if (!heartbeatPlaying) {
-        sounds.heartbeat.play().catch(() => {});
-        heartbeatPlaying = true;
-      }
+      if (!heartbeatPlaying) { sounds.heartbeat.play().catch(()=>{}); heartbeatPlaying = true; }
     }
     function stopHeartbeat() {
-      if (heartbeatPlaying) {
-        sounds.heartbeat.pause();
-        heartbeatPlaying = false;
-      }
+      if (heartbeatPlaying) { sounds.heartbeat.pause(); heartbeatPlaying = false; }
     }
 
     // ===== Game state =====
@@ -626,7 +438,7 @@
       player.vx = player.vy = 0;
       playerFacing = "down";
 
-      const throneTile = findTile(T_THRONE) || { x: Math.floor(WORLD_W / 2), y: WORLD_H - 8 };
+      const throneTile = findTile(T_THRONE) || { x: 25, y: 43 };
       horiver.x = (throneTile.x + 0.5) * TILE;
       horiver.y = (throneTile.y + 0.5) * TILE;
       horiver.vx = horiver.vy = 0;
@@ -646,6 +458,7 @@
       vapeDestroyed = false;
       gameOver = false;
       win = false;
+
       playerHidden = false;
       closetNearby = false;
       closetTile = null;
@@ -719,7 +532,7 @@
       }
     }
 
-    function findNearbyTile(types, px, py, range = 44) {
+    function findNearbyTile(types, px, py, range = 50) {
       const tx = Math.floor(px / TILE);
       const ty = Math.floor(py / TILE);
       let best = null;
@@ -745,13 +558,9 @@
 
     function pickupCheck() {
       clearInteraction();
-      const px = player.x;
-      const py = player.y;
+      const px = player.x, py = player.y;
 
-      const near = findNearbyTile(
-        [T_FLASHLIGHT, T_KEY, T_CHEST, T_BATHROOM, T_THRONE],
-        px, py, 50
-      );
+      const near = findNearbyTile([T_FLASHLIGHT, T_KEY, T_CHEST, T_TOILET_FLUSH, T_THRONE], px, py, 55);
 
       if (near) {
         const { x: tx, y: ty, tile: t } = near;
@@ -762,8 +571,7 @@
             haveFlashlight = true;
             world[ty][tx] = T_FLOOR;
             safePlay(sounds.pickup);
-            document.getElementById("subtitle").textContent =
-              "Mission: find the key to Hóriver’s chest";
+            document.getElementById("subtitle").textContent = "Mission: find the key to Hóriver’s chest";
           };
         }
 
@@ -774,8 +582,7 @@
             world[ty][tx] = T_FLOOR;
             safePlay(sounds.pickup);
             awakenHoriver();
-            document.getElementById("subtitle").textContent =
-              "Mission: reach a chest and steal the vape";
+            document.getElementById("subtitle").textContent = "Mission: reach a chest and steal the vape";
           };
         }
 
@@ -785,12 +592,11 @@
             haveVape = true;
             safePlay(sounds.door);
             safePlay(sounds.pickup);
-            document.getElementById("subtitle").textContent =
-              "Mission: find a bathroom and flush the vape";
+            document.getElementById("subtitle").textContent = "Mission: find a bathroom and flush the vape";
           };
         }
 
-        if (t === T_BATHROOM && haveVape && !vapeDestroyed) {
+        if (t === T_TOILET_FLUSH && haveVape && !vapeDestroyed) {
           interactionPrompt = "Press R to flush the vape";
           interactionAction = () => {
             haveVape = false;
@@ -800,28 +606,24 @@
             horiver.alive = false;
             horiver.active = false;
             stopHeartbeat();
-            document.getElementById("subtitle").textContent =
-              "Mission: return to the throne to claim your reward";
+            document.getElementById("subtitle").textContent = "Mission: return to the throne to claim your reward";
           };
         }
 
         if (t === T_THRONE && vapeDestroyed && !win) {
           interactionPrompt = "Press R to claim your reward";
-          interactionAction = () => {
-            finishLevel();
-          };
+          interactionAction = () => finishLevel();
         }
       }
 
+      // closets (hide)
       closetNearby = false;
       closetTile = null;
-      const nearCloset = findNearbyTile([T_CLOSET], px, py, 50);
+      const nearCloset = findNearbyTile([T_CLOSET], px, py, 55);
       if (nearCloset) {
         closetNearby = true;
         closetTile = { x: nearCloset.x, y: nearCloset.y };
-        const closetMsg = playerHidden
-          ? "Press F to leave closet"
-          : "Press F to hide in closet";
+        const closetMsg = playerHidden ? "Press F to leave closet" : "Press F to hide in closet";
         if (!interactionPrompt) interactionPrompt = closetMsg;
         else interactionPrompt += " | " + closetMsg;
       }
@@ -853,25 +655,19 @@
       const nextY = ent.y + ent.vy * dt;
 
       const txNewX = Math.floor(nextX / TILE);
-      const tyCur = Math.floor(ent.y / TILE);
-      if (isWalkable(txNewX, tyCur)) ent.x = nextX;
-      else ent.vx = 0;
+      const tyCur  = Math.floor(ent.y / TILE);
+      if (isWalkable(txNewX, tyCur)) ent.x = nextX; else ent.vx = 0;
 
-      const txCur = Math.floor(ent.x / TILE);
+      const txCur  = Math.floor(ent.x / TILE);
       const tyNewY = Math.floor(nextY / TILE);
-      if (isWalkable(txCur, tyNewY)) ent.y = nextY;
-      else ent.vy = 0;
+      if (isWalkable(txCur, tyNewY)) ent.y = nextY; else ent.vy = 0;
     }
 
     function toggleHideInCloset() {
       if (playerHidden) {
         playerHidden = false;
-        if (hideReturnPos) {
-          player.x = hideReturnPos.x;
-          player.y = hideReturnPos.y;
-        }
+        if (hideReturnPos) { player.x = hideReturnPos.x; player.y = hideReturnPos.y; }
         hideReturnPos = null;
-        interactionPrompt = "";
         interactionEl.textContent = "";
         return;
       }
@@ -881,8 +677,7 @@
       player.vx = player.vy = 0;
       horiver.timeSinceSeen = 999;
       horiver.searchTimer = 0;
-      interactionPrompt = "Hidden in closet. Press F to leave.";
-      interactionEl.textContent = interactionPrompt;
+      interactionEl.textContent = "Hidden in closet. Press F to leave.";
     }
 
     function updateMovement(dt) {
@@ -892,23 +687,21 @@
         pickupCheck();
         return;
       }
+
       let dx = 0, dy = 0;
       if (keys.w) dy -= 1;
       if (keys.s) dy += 1;
       if (keys.a) dx -= 1;
       if (keys.d) dx += 1;
 
-      if (dx !== 0 || dy !== 0) {
+      if (dx || dy) {
         const len = Math.hypot(dx, dy);
         dx /= len; dy /= len;
         player.vx = dx * playerSpeed;
         player.vy = dy * playerSpeed;
 
-        if (Math.abs(dx) > Math.abs(dy)) {
-          playerFacing = dx > 0 ? "right" : "left";
-        } else {
-          playerFacing = dy > 0 ? "down" : "up";
-        }
+        if (Math.abs(dx) > Math.abs(dy)) playerFacing = dx > 0 ? "right" : "left";
+        else playerFacing = dy > 0 ? "down" : "up";
 
         playFootsteps();
       } else {
@@ -931,15 +724,18 @@
     function canHoriverSeePlayer() {
       if (!horiver.alive || !horiver.active) return false;
       if (playerHidden) return false;
+
       const dx = player.x - horiver.x;
       const dy = player.y - horiver.y;
       const dist = Math.hypot(dx, dy);
       const visionRange = 420;
       if (dist > visionRange) return false;
+
       const dirX = dx / dist;
       const dirY = dy / dist;
       const f = horiverFacingVec;
       const dot = dirX * f.x + dirY * f.y;
+
       const fov = horiver.state === "chase" ? (60 * Math.PI / 180) : (40 * Math.PI / 180);
       const coneCos = Math.cos(fov / 2);
       return dot > coneCos;
@@ -947,6 +743,7 @@
 
     function updateHoriver(dt) {
       if (!horiver.active || !horiver.alive) return;
+
       const sees = canHoriverSeePlayer();
       if (sees) {
         horiver.timeSinceSeen = 0;
@@ -958,24 +755,21 @@
       }
 
       const base = horiverBaseSpeed;
-      let targetX = horiver.x;
-      let targetY = horiver.y;
-      let speed = base;
+      let targetX = horiver.x, targetY = horiver.y, speed = base;
 
       if (horiver.state === "patrol") {
         const pts = [
-          { x: 25, y: 20 },  // centre hall
-          { x: 25, y: 40 },  // near throne
-          { x: 13, y: 22 },  // left wing
-          { x: 37, y: 22 }   // right wing
+          { x: 25, y: 20 },
+          { x: 25, y: 40 },
+          { x: 13, y: 22 },
+          { x: 37, y: 22 }
         ];
         const p = pts[horiver.patrolIndex % pts.length];
         targetX = (p.x + 0.5) * TILE;
         targetY = (p.y + 0.5) * TILE;
         speed = base * 0.6;
-        const dpx = targetX - horiver.x;
-        const dpy = targetY - horiver.y;
-        if (Math.hypot(dpx, dpy) < 10) {
+
+        if (Math.hypot(targetX - horiver.x, targetY - horiver.y) < 10) {
           horiver.patrolIndex = (horiver.patrolIndex + 1) % pts.length;
         }
       } else if (horiver.state === "chase") {
@@ -990,9 +784,7 @@
         targetX = horiver.lastKnownX;
         targetY = horiver.lastKnownY;
         speed = base * 0.9;
-        const ddx = targetX - horiver.x;
-        const ddy = targetY - horiver.y;
-        if (Math.hypot(ddx, ddy) < 12) {
+        if (Math.hypot(targetX - horiver.x, targetY - horiver.y) < 12) {
           horiver.searchTimer += dt;
           if (horiver.searchTimer > 5) {
             setHoriverState("patrol");
@@ -1004,27 +796,21 @@
       const mdx = targetX - horiver.x;
       const mdy = targetY - horiver.y;
       const mdist = Math.hypot(mdx, mdy) || 1;
+
       if (mdist > 1) {
-        const vx = (mdx / mdist) * speed;
-        const vy = (mdy / mdist) * speed;
-        horiver.vx = vx;
-        horiver.vy = vy;
+        horiver.vx = (mdx / mdist) * speed;
+        horiver.vy = (mdy / mdist) * speed;
         horiverFacingVec.x = mdx / mdist;
         horiverFacingVec.y = mdy / mdist;
       } else {
-        horiver.vx = 0;
-        horiver.vy = 0;
+        horiver.vx = horiver.vy = 0;
       }
 
       moveEntity(horiver, dt);
 
-      const ptx = Math.floor(player.x / TILE);
-      const pty = Math.floor(player.y / TILE);
-      const htx = Math.floor(horiver.x / TILE);
-      const hty = Math.floor(horiver.y / TILE);
-      if (ptx === htx && pty === hty && !playerHidden && !vapeDestroyed) {
-        killPlayer();
-      }
+      const ptx = Math.floor(player.x / TILE), pty = Math.floor(player.y / TILE);
+      const htx = Math.floor(horiver.x / TILE), hty = Math.floor(horiver.y / TILE);
+      if (ptx === htx && pty === hty && !playerHidden && !vapeDestroyed) killPlayer();
     }
 
     function getCamera() {
@@ -1037,6 +823,11 @@
       return { x: camX, y: camY };
     }
 
+    function drawIfLoaded(img, dx, dy, w, h) {
+      if (img.complete && img.naturalWidth) ctx.drawImage(img, dx, dy, w, h);
+      else { ctx.fillStyle = "#444"; ctx.fillRect(dx, dy, w, h); }
+    }
+
     function render() {
       const cam = getCamera();
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1046,130 +837,83 @@
       const endTX = Math.ceil((cam.x + canvas.width) / TILE);
       const endTY = Math.ceil((cam.y + canvas.height) / TILE);
 
+      // draw map
       for (let ty = startTY; ty <= endTY; ty++) {
         for (let tx = startTX; tx <= endTX; tx++) {
           const t = tileAt(tx, ty);
           const sx = tx * TILE - cam.x;
           const sy = ty * TILE - cam.y;
 
-          // floor / wall
+          // floor / wall textures
           if (t === T_WALL) {
-            if (imgCobbleDark.complete && imgCobbleDark.naturalWidth) {
-              ctx.drawImage(imgCobbleDark, sx, sy, TILE, TILE);
-            } else {
-              ctx.fillStyle = "#1b1013";
-              ctx.fillRect(sx, sy, TILE, TILE);
-            }
+            drawIfLoaded(imgCobbleDark, sx, sy, TILE, TILE);
           } else {
             const r = coordRand(tx, ty);
-            const baseImg = (r < 0.7) ? imgCobble : imgCobbleCracked;
-            if (baseImg.complete && baseImg.naturalWidth) {
-              ctx.drawImage(baseImg, sx, sy, TILE, TILE);
-            } else {
-              ctx.fillStyle = "#202028";
-              ctx.fillRect(sx, sy, TILE, TILE);
-            }
+            drawIfLoaded(r < 0.72 ? imgCobble : imgCobbleCracked, sx, sy, TILE, TILE);
           }
 
-          // helper for scaled objects
-          function drawScaled(img, wMul, hMul, offsetX = 0, offsetY = 0) {
+          // draw scaled props anchored on this tile
+          function drawScaled(img, wMul, hMul, ox, oy) {
             if (!img.complete || !img.naturalWidth) return;
-            const w = TILE * wMul;
-            const h = TILE * hMul;
-            const dx = sx + offsetX;
-            const dy = sy + offsetY;
-            ctx.drawImage(img, dx, dy, w, h);
+            ctx.drawImage(img, sx + ox, sy + oy, TILE * wMul, TILE * hMul);
           }
 
-          // throne (2x size)
-          if (t === T_THRONE) {
-            drawScaled(imgThrone, 2, 2, -TILE / 2, -TILE);
-          }
+          // throne 2× (your request)
+          if (t === T_THRONE) drawScaled(imgThrone, 2, 2, -TILE/2, -TILE);
 
-          // bathroom fixtures
-          if (t === T_BATHROOM) {
-            // toilet 2x
-            drawScaled(imgToilet, 2, 2, -TILE / 2, -TILE);
-          }
-          if (t === T_SINK_TILE) {
-            // sink ~1.5x
-            drawScaled(imgSink, 1.5, 1.5, -TILE * 0.25, -TILE * 0.75);
-          }
-          if (t === T_BATH_TUB_TILE) {
-            // bath 3x wide, 2x tall
-            drawScaled(imgBath, 3, 2, -TILE, -TILE);
-          }
+          // closet 2×
+          if (t === T_CLOSET) drawScaled(imgCloset, 2, 2, -TILE/2, -TILE);
 
-          // closet 2x tall-ish
-          if (t === T_CLOSET) {
-            if (imgCloset.complete && imgCloset.naturalWidth) {
-              const w = TILE * 2;
-              const h = TILE * 2;
-              ctx.drawImage(imgCloset, sx - TILE / 2, sy - TILE, w, h);
-            }
-          }
+          // toilet 2×
+          if (t === T_TOILET_FLUSH) drawScaled(imgToilet, 2, 2, -TILE/2, -TILE);
 
-          // beds
-          if (t === T_BED) {
-            drawScaled(imgBed, 2, 2, -TILE / 2, -TILE);
-          }
-          if (t === T_MED_BED) {
-            drawScaled(imgMedBed, 2, 2, -TILE / 2, -TILE);
-          }
+          // sink ~1.5×
+          if (t === T_SINK_TILE) drawScaled(imgSink, 1.5, 1.5, -TILE*0.25, -TILE*0.75);
 
-          // tables & chairs
-          if (t === T_TABLE) {
-            drawScaled(imgTable, 2, 2, -TILE / 2, -TILE);
-          }
-          if (t === T_CHAIR) {
-            drawScaled(imgChair, 2, 2, -TILE / 2, -TILE);
-          }
+          // bath big (3× wide)
+          if (t === T_BATH_TILE) drawScaled(imgBath, 3, 2, -TILE, -TILE);
 
-          // stove 3x
-          if (t === T_STOVE) {
-            drawScaled(imgStove, 3, 3, -TILE, -TILE * 2);
-          }
+          // bed 2×
+          if (t === T_BED) drawScaled(imgBed, 2, 2, -TILE/2, -TILE);
 
-          // weapon rack & armor stand
-          if (t === T_WEAPON_RACK) {
-            drawScaled(imgWeaponRack, 2, 2, -TILE / 2, -TILE);
-          }
-          if (t === T_ARMOR_STAND) {
-            drawScaled(imgArmorStand, 2, 2, -TILE / 2, -TILE);
-          }
+          // med bed 2×
+          if (t === T_MED_BED) drawScaled(imgMedBed, 2, 2, -TILE/2, -TILE);
 
-          // med shelf
-          if (t === T_MED_SHELF) {
-            drawScaled(imgMedShelf, 2, 2, -TILE / 2, -TILE);
-          }
+          // table 2×
+          if (t === T_TABLE) drawScaled(imgTable, 2, 2, -TILE/2, -TILE);
+
+          // chair 2×
+          if (t === T_CHAIR) drawScaled(imgChair, 2, 2, -TILE/2, -TILE);
+
+          // stove 3×
+          if (t === T_STOVE) drawScaled(imgStove, 3, 3, -TILE, -TILE*2);
+
+          // racks
+          if (t === T_WEAPON_RACK) drawScaled(imgWeaponRack, 2, 2, -TILE/2, -TILE);
+          if (t === T_ARMOR_STAND) drawScaled(imgArmorStand, 2, 2, -TILE/2, -TILE);
+
+          // shelf 2×
+          if (t === T_MED_SHELF) drawScaled(imgMedShelf, 2, 2, -TILE/2, -TILE);
         }
       }
 
+      // items (small)
       function drawSprite(img, gx, gy, scale = 0.95) {
         const screenX = gx * TILE - cam.x;
         const screenY = gy * TILE - cam.y;
         const size = TILE * scale;
         const dx = screenX + (TILE - size) / 2;
         const dy = screenY + (TILE - size) / 2;
-        if (screenX + TILE < 0 || screenY + TILE < 0 ||
-            screenX > canvas.width || screenY > canvas.height) return;
-        if (img.complete && img.naturalWidth) {
-          ctx.drawImage(img, dx, dy, size, size);
-        } else {
-          ctx.fillStyle = "#0cf";
-          ctx.fillRect(dx, dy, size, size);
-        }
+        if (screenX + TILE < 0 || screenY + TILE < 0 || screenX > canvas.width || screenY > canvas.height) return;
+        if (img.complete && img.naturalWidth) ctx.drawImage(img, dx, dy, size, size);
       }
 
-      // items
       for (let ty = startTY; ty <= endTY; ty++) {
         for (let tx = startTX; tx <= endTX; tx++) {
           const t = tileAt(tx, ty);
           if (t === T_FLASHLIGHT && !haveFlashlight) drawSprite(imgFlashlight, tx, ty);
           if (t === T_KEY && !haveKey) drawSprite(imgKey, tx, ty);
-          if (t === T_CHEST && haveKey && !vapeDestroyed && !haveVape) {
-            drawSprite(imgVape, tx, ty);
-          }
+          if (t === T_CHEST && haveKey && !vapeDestroyed && !haveVape) drawSprite(imgVape, tx, ty);
         }
       }
 
@@ -1186,11 +930,8 @@
       // horiver
       if (horiver.alive && horiver.active) {
         let hImg = imgHoriverDown;
-        if (Math.abs(horiverFacingVec.x) > Math.abs(horiverFacingVec.y)) {
-          hImg = horiverFacingVec.x < 0 ? imgHoriverLeft : imgHoriverRight;
-        } else {
-          hImg = horiverFacingVec.y < 0 ? imgHoriverUp : imgHoriverDown;
-        }
+        if (Math.abs(horiverFacingVec.x) > Math.abs(horiverFacingVec.y)) hImg = horiverFacingVec.x < 0 ? imgHoriverLeft : imgHoriverRight;
+        else hImg = horiverFacingVec.y < 0 ? imgHoriverUp : imgHoriverDown;
         drawSprite(hImg, horiver.x / TILE, horiver.y / TILE);
       }
 
@@ -1206,12 +947,7 @@
       function drawIcon(img, have) {
         ctx.save();
         ctx.globalAlpha = have ? 1.0 : 0.25;
-        if (img.complete && img.naturalWidth) {
-          ctx.drawImage(img, x, y, size, size);
-        } else {
-          ctx.fillStyle = have ? "#ffe696" : "#555";
-          ctx.fillRect(x, y, size, size);
-        }
+        if (img.complete && img.naturalWidth) ctx.drawImage(img, x, y, size, size);
         ctx.restore();
         x += size + 6;
       }
@@ -1222,32 +958,35 @@
       drawIcon(imgHUDToken, vapeDestroyed);
     }
 
+    // ===== FIXED FOG / FLASHLIGHT (light cuts out of darkness) =====
     function applyFog(pScreenX, pScreenY) {
       ctx.save();
 
-      const outerRadius = haveFlashlight ? 260 : 180;
-      const g = ctx.createRadialGradient(
-        pScreenX, pScreenY, 0,
-        pScreenX, pScreenY, outerRadius
-      );
-      g.addColorStop(0, "rgba(0,0,0,0)");
-      g.addColorStop(0.7, "rgba(0,0,0,0.45)");
-      g.addColorStop(1, "rgba(0,0,0,0.96)");
-      ctx.fillStyle = g;
+      // Full darkness
+      ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      if (haveFlashlight) {
-        ctx.globalCompositeOperation = "destination-out";
+      // Cut light holes
+      ctx.globalCompositeOperation = "destination-out";
 
+      // aura
+      const auraRadius = haveFlashlight ? 140 : 90;
+      ctx.beginPath();
+      ctx.arc(pScreenX, pScreenY, auraRadius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // cone if flashlight
+      if (haveFlashlight) {
         const dx = mouseX - pScreenX;
         const dy = mouseY - pScreenY;
         let len = Math.hypot(dx, dy);
         if (len < 0.001) len = 1;
+
         const dirX = dx / len;
         const dirY = dy / len;
 
         const coneLength = 420;
-        const coneWidth = Math.PI / 10;
+        const coneWidth  = Math.PI / 10;
 
         const angle = Math.atan2(dirY, dirX);
         const a1 = angle - coneWidth;
@@ -1263,7 +1002,7 @@
         ctx.lineTo(tip1x, tip1y);
         ctx.lineTo(tip2x, tip2y);
         ctx.closePath();
-        ctx.fillStyle = "rgba(0,0,0,0.98)";
+        ctx.fillStyle = "rgba(0,0,0,1)";
         ctx.fill();
       }
 
@@ -1346,12 +1085,8 @@
         return;
       }
       welcomeStep++;
-      if (welcomeStep < welcomeMessages.length) {
-        startTyping();
-      } else {
-        welcomeTextWrapper.style.display = "none";
-        welcomeFinal.style.display = "block";
-      }
+      if (welcomeStep < welcomeMessages.length) startTyping();
+      else { welcomeTextWrapper.style.display = "none"; welcomeFinal.style.display = "block"; }
     });
 
     enterBtn.addEventListener("click", (e) => {
